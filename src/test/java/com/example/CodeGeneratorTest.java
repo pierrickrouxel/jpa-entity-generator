@@ -1,5 +1,6 @@
 package com.example;
 
+import com.example.unit.DatabaseUtil;
 import com.smartnews.jpa_entity_generator.CodeGenerator;
 import com.smartnews.jpa_entity_generator.config.CodeGeneratorConfig;
 import org.junit.BeforeClass;
@@ -56,5 +57,15 @@ public class CodeGeneratorTest {
         CodeGenerator.generateAll(config, true);
         CodeGenerator.generateAll(config, false);
     }
+
+    @Test
+    public void _05_test_foreign_key() throws Exception {
+        CodeGeneratorConfig config = CodeGeneratorConfig.load("entityGenConfig5.yml");
+        config.setJpa1SupportRequired(true);
+        config.setOutputDirectory("src/test/java");
+        CodeGenerator.generateAll(config, true);
+        CodeGenerator.generateAll(config, false);
+    }
+
 
 }
