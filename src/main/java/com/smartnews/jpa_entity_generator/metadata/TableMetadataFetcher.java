@@ -31,7 +31,11 @@ public class TableMetadataFetcher {
             List<String> tableNames = new ArrayList<>();
             try (ResultSet rs = databaseMeta.getTables(null,  jdbcSettings.getSchemaPattern(), "%", TABLE_TYPES)) {
                 while (rs.next()) {
-                    tableNames.add(rs.getString("TABLE_NAME"));
+                    if (rs.getString("TABLE_SCHEM") != null) {
+                        tableNames.add(rs.getString("TABLE_SCHEM")+"."+rs.getString("TABLE_NAME"));
+                    } else {
+                        tableNames.add(rs.getString("TABLE_NAME"));
+                    }
                 }
             }
             return tableNames;
@@ -150,7 +154,7 @@ public class TableMetadataFetcher {
 
     private static String extractSchema(String schemaAndTable) {
         if (schemaAndTable.contains(".")) {
-            return schemaAndTable.split(".")[0];
+            return schemaAndTable.split("\\.")[0];
         } else {
             return null;
         }
@@ -158,7 +162,7 @@ public class TableMetadataFetcher {
 
     private static String extractTabeName(String schemaAndTable) {
         if (schemaAndTable.contains(".")) {
-            return schemaAndTable.split(".")[1];
+            return schemaAndTable.split("\\.")[1];
         } else {
             return schemaAndTable;
         }

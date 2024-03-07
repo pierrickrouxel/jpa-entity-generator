@@ -13,7 +13,7 @@ ${annotation.toString()}
 </#list>
 </#list>
 <#-- NOTICE: the name attribute of @Table is intentionally unquoted  -->
-@Table(name = "${tableName}")<#if primaryKeyFields.size() \gt 1>
+@Table(<#if fschemaName??>schema = "${schemaName}"</#if>, name = "${tableName}")<#if primaryKeyFields.size() \gt 1>
 @IdClass(${className}.PrimaryKeys.class)</#if>
 public class ${className}<#if interfaceNames.size() \gt 0> implements ${interfaceNames?join(", ")}</#if> {
 <#if primaryKeyFields.size() \gt 1>

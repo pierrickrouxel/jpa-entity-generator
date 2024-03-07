@@ -52,6 +52,7 @@ public class CodeRenderer {
     public static class RenderingData {
 
         private String packageName;
+        private String schemaName;
         private String tableName;
         private String className;
         private String classComment;
