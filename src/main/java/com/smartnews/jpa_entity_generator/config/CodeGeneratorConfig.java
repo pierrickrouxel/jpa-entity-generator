@@ -129,6 +129,7 @@ public class CodeGeneratorConfig implements Serializable {
     private List<TableScanRule> tableScanRules = new ArrayList<>();
     private List<TableExclusionRule> tableExclusionRules = new ArrayList<>();
 
+    private boolean quotedColumnNames = true;
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
     // Possible values: TABLE, SEQUENCE, IDENTITY, AUTO
     // If you don't need to specify the `strategy`, set null value.

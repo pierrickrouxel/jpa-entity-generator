@@ -59,6 +59,7 @@ public class CodeRenderer {
 
         private boolean jpa1Compatible = false;
         private boolean requireJSR305 = false;
+        private boolean quotedColumnNames = false;
         // Default is false for not affecting current logic
         // Can be removed after no javax support and replace requireJSR305 to requireJakartaAnnotation
         private boolean useJakarta = false;
