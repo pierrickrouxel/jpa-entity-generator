@@ -108,6 +108,7 @@ public class CodeRenderer {
             private String name;
             private String type;
             private JoinColumn joinColumn;
+            private boolean oneToOne;
         }
 
         @Data
@@ -115,6 +116,7 @@ public class CodeRenderer {
             private String name;
             private String type;
             private List<JoinColumn> joinColumns;
+            private boolean oneToOne;
         }
 
         @Data

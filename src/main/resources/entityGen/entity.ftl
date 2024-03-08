@@ -53,12 +53,12 @@ ${field.comment}
   private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
 </#list>
 <#list foreignKeyFields as foreignKey>
-  @ManyToOne
+  <#if foreignKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
   @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})
   private ${foreignKey.type} ${foreignKey.name};
 </#list>
 <#list foreignCompositeKeyFields as foreignCompositeKey>
-  @ManyToOne
+  <#if foreignCompositeKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
   @JoinColumns({
   <#list foreignCompositeKey.joinColumns as joinColumn>
     @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c}),

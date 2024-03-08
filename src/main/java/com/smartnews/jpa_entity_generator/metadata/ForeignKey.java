@@ -7,4 +7,5 @@ public class ForeignKey {
     private String columnName;
     private String pkColumnName;
     private String pkTable;
+    private boolean oneToOne;
 }

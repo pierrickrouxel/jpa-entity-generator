@@ -180,6 +180,7 @@ public class CodeGenerator {
                 f.setName(NameConverter.toFieldName(value.getPkTable()));
                 f.setType(NameConverter.toClassName(value.getPkTable(), config.getClassNameRules()));
                 f.setJoinColumn(jc);
+                f.setOneToOne(value.isOneToOne());
                 data.getForeignKeyFields().add(f);
             });
             table.getForeignCompositeKeyMap().forEach((key, value) -> {
@@ -192,6 +193,7 @@ public class CodeGenerator {
                 }).collect(toList()));
                 f.setName(NameConverter.toFieldName(value.get(0).getPkTable()));
                 f.setType(NameConverter.toClassName(value.get(0).getPkTable(), config.getClassNameRules()));
+                f.setOneToOne(value.stream().filter(j -> !j.isOneToOne()).findFirst().map(ForeignKey::isOneToOne).orElse(true));
                 data.getForeignCompositeKeyFields().add(f);
             });
 
@@ -307,10 +309,20 @@ public class CodeGenerator {
             });
 
             // remove column mapping if present in foreign key mapping
-            t.getColumns().removeIf(c ->
+            t.getForeignKeyMap().values().stream().forEach(fk -> {
+                if(t.getColumns().stream().filter(c->c.getName().equals(fk.getColumnName())).findFirst().map(Column::isPrimaryKey).orElse(false)) {
+                    fk.setOneToOne(true);
+                }
+            });
+            t.getForeignCompositeKeyMap().values().stream().flatMap(Collection::stream).forEach(fk -> {
+                if(t.getColumns().stream().filter(c->c.getName().equals(fk.getColumnName())).findFirst().map(Column::isPrimaryKey).orElse(false)) {
+                    fk.setOneToOne(true);
+                }
+            });
+            t.getColumns().removeIf(c -> !c.isPrimaryKey() &&
                 Stream.concat(t.getForeignKeyMap().values().stream(),t.getForeignCompositeKeyMap().values().stream()
                     .flatMap(Collection::stream))
-                .map(ForeignKey::getColumnName).collect(toList()).contains(c.getName()));
+                .map(ForeignKey::getColumnName).collect(toList()).contains(c.getName()) );
         });
     }
 
