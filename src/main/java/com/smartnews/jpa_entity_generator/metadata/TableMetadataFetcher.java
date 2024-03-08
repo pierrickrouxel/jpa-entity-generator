@@ -133,7 +133,6 @@ public class TableMetadataFetcher {
                         log.debug("Failed to fetch primary key or not for {}.{}", table, column.getName(), e);
                     }
                     column.setPrimaryKey(primaryKey);
-                    log.warn(tableInfo.getName() + "." + column.getName() + ": " + column.isPrimaryKey());
 
                     tableInfo.getColumns().add(column);
                 }

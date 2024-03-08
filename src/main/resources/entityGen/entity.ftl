@@ -1,5 +1,5 @@
 package ${packageName};
-
+<#if headerComment??>${headerComment}</#if>
 <#list importRules as rule>
 import ${rule.importValue};
 </#list>

@@ -85,6 +85,8 @@ public class CodeGenerator {
             data.setGenerateRelationshipsUpdatable(config.isGenerateRelationshipsUpdatable());
             data.setQuotedColumnNames(config.isQuotedColumnNames());
             
+            data.setHeaderComment(config.getHeaderComment());
+            
             if (isJpa1) {
                 data.setPackageName(config.getPackageNameForJpa1());
             } else {

@@ -6,6 +6,7 @@ import lombok.Data;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.nio.charset.Charset;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -148,6 +149,7 @@ public class CodeGeneratorConfig implements Serializable {
     private boolean useJakarta;
     private boolean usePrimitiveForNonNullField;
 
+    private String headerComment;
     // NOTE: Explicitly having NoArgsConstructor/AllArgsConstructor is necessary as as a workaround to enable using @Builder
     // see also: https://github.com/rzwitserloot/lombok/issues/816
     private boolean autoPreparationForLombokBuilderEnabled;
@@ -170,7 +172,7 @@ public class CodeGeneratorConfig implements Serializable {
 
     public static CodeGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
         try (InputStream is = ResourceReader.getResourceAsStream(path)) {
-            try (Reader reader = new InputStreamReader(is)) {
+            try (Reader reader = new InputStreamReader(is, Charset.forName("utf-8"))) {
                 CodeGeneratorConfig config = YAML.loadAs(reader, CodeGeneratorConfig.class);
                 config.loadEnvVariables(environment);
                 config.setUpPresetRules();

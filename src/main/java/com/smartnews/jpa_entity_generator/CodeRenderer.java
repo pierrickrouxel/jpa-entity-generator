@@ -56,7 +56,8 @@ public class CodeRenderer {
         private String tableName;
         private String className;
         private String classComment;
-
+        private String headerComment;
+        
         private boolean jpa1Compatible = false;
         private boolean requireJSR305 = false;
         private boolean quotedColumnNames = false;
