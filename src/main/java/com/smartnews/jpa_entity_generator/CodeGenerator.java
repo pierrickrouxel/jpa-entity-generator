@@ -180,7 +180,11 @@ public class CodeGenerator {
                 CodeRenderer.RenderingData.JoinColumn jc = new CodeRenderer.RenderingData.JoinColumn();
                 jc.setColumnName(value.getColumnName());
                 jc.setReferencedColumnName(value.getPkColumnName());
-                f.setName(NameConverter.toFieldName(value.getPkTable()));
+                if (table.getForeignKeyMap().values().stream().filter(v->v.getPkTable().equals(value.getPkTable())).count() > 1) {
+                    f.setName(NameConverter.toFieldName(value.getPkTable(), key));
+                } else {
+                    f.setName(NameConverter.toFieldName(value.getPkTable()));
+                }
                 f.setType(NameConverter.toClassName(value.getPkTable(), config.getClassNameRules()));
                 f.setJoinColumn(jc);
                 f.setOneToOne(value.isOneToOne());
@@ -190,11 +194,15 @@ public class CodeGenerator {
                 CodeRenderer.RenderingData.ForeignCompositeKeyField f = new CodeRenderer.RenderingData.ForeignCompositeKeyField();
                 f.setJoinColumns(value.stream().map(j -> {
                     CodeRenderer.RenderingData.JoinColumn jc = new CodeRenderer.RenderingData.JoinColumn();
-                    jc.setColumnName(j.getPkColumnName());
+                    jc.setColumnName(j.getColumnName());
                     jc.setReferencedColumnName(j.getPkColumnName());
                     return jc;
                 }).collect(toList()));
-                f.setName(NameConverter.toFieldName(value.get(0).getPkTable()));
+                if (table.getForeignCompositeKeyMap().values().stream().filter(v->v.get(0).getPkTable().equals(value.get(0).getPkTable())).count() > 1) {
+                    f.setName(NameConverter.toFieldName(value.get(0).getPkTable(), key));
+                } else {
+                    f.setName(NameConverter.toFieldName(value.get(0).getPkTable()));
+                }
                 f.setType(NameConverter.toClassName(value.get(0).getPkTable(), config.getClassNameRules()));
                 f.setOneToOne(value.stream().filter(j -> !j.isOneToOne()).findFirst().map(ForeignKey::isOneToOne).orElse(true));
                 data.getForeignCompositeKeyFields().add(f);

@@ -25,4 +25,8 @@ public class NameConverter {
     public static String toFieldName(String tableName) {
         return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, tableName);
     }
+
+    public static String toFieldName(String tableName, String fkName) {
+        return CaseFormat.UPPER_UNDERSCORE.to(CaseFormat.LOWER_CAMEL, tableName + fkName);
+    }
 }
