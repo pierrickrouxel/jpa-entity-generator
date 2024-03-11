@@ -56,6 +56,7 @@ public class CodeRenderer {
         private String tableName;
         private String className;
         private String classComment;
+        private boolean collapesComments = false;
         private String headerComment;
         
         private boolean jpa1Compatible = false;
