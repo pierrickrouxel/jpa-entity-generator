@@ -16,21 +16,21 @@ ${annotation.toString()}
 @Table(<#if schemaName??>schema = "${schemaName}", </#if>name = "${tableName}")<#if primaryKeyFields.size() \gt 1>
 @IdClass(${className}.PrimaryKeys.class)</#if>
 public class ${className}<#if interfaceNames.size() \gt 0> implements ${interfaceNames?join(", ")}</#if> {
-<#if primaryKeyFields.size() \gt 1><#if collapesComments>
+<#if primaryKeyFields.size() \gt 1><#if foldCode>
 // <editor-fold defaultstate="collapsed" desc="Generated PK-class">
 </#if>  @Data
   public static class PrimaryKeys implements Serializable {
   <#list primaryKeyFields as field>
     private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
   </#list>
-  }<#if collapesComments>
+  }<#if foldCode>
 // </editor-fold>
 </#if></#if>
 
 <#list topAdditionalCodeList as code>
 ${code}
 
-</#list><#if collapesComments>
+</#list><#if foldCode>
 // <editor-fold defaultstate="collapsed" desc="Generated fields">
 </#if><#list fields as field>
 <#if field.comment?has_content>
@@ -72,7 +72,7 @@ ${field.comment}
 <#list importedKeyFields as importedKey>
   @OneToMany(mappedBy = "${importedKey.mappedBy}")
   private java.util.List<${importedKey.name}> listOf${importedKey.name};
-</#list><#if collapesComments>
+</#list><#if foldCode>
 // </editor-fold>
 
 </#if><#list bottomAdditionalCodeList as code>

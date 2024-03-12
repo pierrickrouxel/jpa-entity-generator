@@ -85,7 +85,7 @@ public class CodeGenerator {
             data.setGenerateRelationshipsUpdatable(config.isGenerateRelationshipsUpdatable());
             data.setQuotedColumnNames(config.isQuotedColumnNames());
             
-            data.setCollapesComments(config.isCollapesComments());
+            data.setFoldCode(config.isFoldCode());
             data.setHeaderComment(config.getHeaderComment());
             
             if (isJpa1) {
@@ -110,7 +110,7 @@ public class CodeGenerator {
             entityClassAnnotationRule.setClassName(className);
             config.getClassAnnotationRules().add(entityClassAnnotationRule);
 
-            data.setClassComment(buildClassComment(className, table, config.getClassAdditionalCommentRules()));
+            data.setClassComment(buildClassComment(className, table, config.getClassAdditionalCommentRules(), config.getClassComment()));
 
             data.setImportRules(config.getImportRules().stream()
                 .filter(r -> r.matches(className))
@@ -275,7 +275,6 @@ public class CodeGenerator {
             });
 
             orEmptyListIfNull(data.getImportRules()).sort(Comparator.comparing(ImportRule::getImportValue));
-
             String code = CodeRenderer.render("entityGen/entity.ftl", data);
 
             String filepath = config.getOutputDirectory() + "/" + data.getPackageName().replaceAll("\\.", "/") + "/" + className + ".java";
@@ -365,16 +364,20 @@ public class CodeGenerator {
         }
     }
 
-    private static String buildClassComment(String className, Table table, List<ClassAdditionalCommentRule> rules) {
+    private static String buildClassComment(String className, Table table, List<ClassAdditionalCommentRule> rules, String globalClassComment) {
         List<String> comment = table.getDescription()
             .map(c -> Arrays.stream(c.split("\n")).filter(l -> l != null && !l.isEmpty()).collect(toList()))
-            .orElse(Collections.emptyList());
+            .orElse(new ArrayList<>());
         List<String> additionalComments = rules.stream()
             .filter(r -> r.matches(className))
             .map(ClassAdditionalCommentRule::getComment)
             .flatMap(c -> Arrays.stream(c.split("\n")))
             .collect(toList());
         comment.addAll(additionalComments);
+        if (globalClassComment != null) {
+            List<String> globalComments = Arrays.asList(globalClassComment.split("\n"));
+            comment.addAll(globalComments);
+        }
         if (comment.size() > 0) {
             return comment.stream().collect(joining("\n * ", "/**\n * ", "\n */"));
         } else {

@@ -149,8 +149,9 @@ public class CodeGeneratorConfig implements Serializable {
     private boolean useJakarta;
     private boolean usePrimitiveForNonNullField;
 
-    private boolean collapesComments = false;
+    private boolean foldCode = false;
     private String headerComment;
+    private String classComment;
     // NOTE: Explicitly having NoArgsConstructor/AllArgsConstructor is necessary as as a workaround to enable using @Builder
     // see also: https://github.com/rzwitserloot/lombok/issues/816
     private boolean autoPreparationForLombokBuilderEnabled;
