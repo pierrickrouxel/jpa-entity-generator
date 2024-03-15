@@ -2,10 +2,10 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.smartnews</groupId>
-    <artifactId>maven-jpa-entity-generator-plugin</artifactId>
+    <artifactId>jpa-entity-generator-maven-plugin</artifactId>
     <packaging>maven-plugin</packaging>
     <version>0.99.9</version> <!-- Please update this version number manually -->
-    <name>maven-entitygen-plugin Maven Mojo</name>
+    <name>entitygen-maven-plugin Maven Mojo</name>
     <url>https://github.com/smartnews/jpa-entity-generator</url>
 
     <parent>
@@ -56,7 +56,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-plugin-plugin</artifactId>
-                <version>3.5.2</version>
+                <version>3.11.0</version>
                 <executions>
                     <execution>
                         <id>mojo-descriptor</id>
@@ -66,7 +66,7 @@
                     </execution>
                 </executions>
             </plugin>
-            <plugin>
+            <!--plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>
                 <executions>
@@ -75,15 +75,15 @@
                         <phase>verify</phase>
                         <goals>
                             <goal>sign</goal>
-                        </goals>
-<!--                    Please refer to this page https://central.sonatype.org/publish/publish-maven/#gpg-signed-components  -->
-<!--                    <configuration>                                                                                      -->
-<!--                        <keyname>${gpg.keyname}</keyname>                                                                -->
-<!--                        <passphraseServerId>${gpg.keyname}</passphraseServerId>                                          -->
-<!--                    </configuration>-->
-                    </execution>
+                        </goals-->
+                        <!--                    Please refer to this page https://central.sonatype.org/publish/publish-maven/#gpg-signed-components  -->
+                        <!--                    <configuration>                                                                                      -->
+                        <!--                        <keyname>${gpg.keyname}</keyname>                                                                -->
+                        <!--                        <passphraseServerId>${gpg.keyname}</passphraseServerId>                                          -->
+                        <!--                    </configuration>-->
+                    <!--/execution>
                 </executions>
-            </plugin>
+            </plugin-->
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
@@ -108,8 +108,9 @@
                     <includes>
                         <include>com/smartnews/jpa_entity_generator/maven/EntityGenMojo.java</include>
                     </includes>
-                    <source>1.8</source>
-                    <target>1.8</target>
+                    <release>11</release>
+                    <source>11</source>
+                    <target>11</target>
                     <encoding>UTF-8</encoding>
                 </configuration>
             </plugin>
@@ -141,7 +142,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-javadoc-plugin</artifactId>
-                <version>2.9</version>
+                <version>3.6.3</version>
                 <executions>
                     <execution>
                         <id>attach-sources</id>
@@ -150,6 +151,7 @@
                         </goals>
                         <configuration>
                             <additionalparam>-Xdoclint:none</additionalparam>
+                            <failOnError>false</failOnError>
                         </configuration>
                     </execution>
                 </executions>
@@ -167,13 +169,13 @@
         <dependency>
             <groupId>com.smartnews</groupId>
             <artifactId>jpa-entity-generator</artifactId>
-            <version>0.99.8</version>
+            <version>0.99.9.bue</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.2</version>
+            <version>1.18.30</version>
             <scope>compile</scope>
         </dependency>
         <dependency>
