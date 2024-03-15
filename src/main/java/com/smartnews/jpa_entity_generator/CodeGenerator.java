@@ -386,7 +386,7 @@ public class CodeGenerator {
             comment.addAll(globalComments);
         }
         if (comment.size() > 0) {
-            return comment.stream().collect(joining("\n * ", "/**\n * ", "\n */"));
+            return comment.stream().map(s-> s.length() > 0 ? " " + s:s).collect(joining("\n *", "/**\n *", "\n */"));
         } else {
             return null;
         }
