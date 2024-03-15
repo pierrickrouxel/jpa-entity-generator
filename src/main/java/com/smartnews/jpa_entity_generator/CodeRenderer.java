@@ -102,8 +102,10 @@ public class CodeRenderer {
         }
         @Data
         public static class ImportedKeyField {
+            private String type;
             private String name;
             private String mappedBy;
+            private boolean oneToOne;
         }
         @Data
         public static class ForeignKeyField {

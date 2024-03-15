@@ -1,7 +1,7 @@
 package ${packageName};
-<#if headerComment??>${headerComment}</#if>
-<#list importRules as rule>
-import ${rule.importValue};
+<#if headerComment??>
+
+${headerComment}</#if><#list importRules as rule>import ${rule.importValue};
 </#list>
 
 <#if classComment?has_content>
@@ -19,11 +19,11 @@ public class ${className}<#if interfaceNames.size() \gt 0> implements ${interfac
 <#if primaryKeyFields.size() \gt 1><#if foldCode>
 // <editor-fold defaultstate="collapsed" desc="Generated PK-class">
 </#if>  @Data
-  public static class PrimaryKeys implements Serializable {
-  <#list primaryKeyFields as field>
-    private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
-  </#list>
-  }<#if foldCode>
+    public static class PrimaryKeys implements Serializable {
+    <#list primaryKeyFields as field>
+      private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
+    </#list>
+    }<#if foldCode>
 // </editor-fold>
 </#if></#if>
 
@@ -37,42 +37,46 @@ ${code}
 ${field.comment}
 </#if>
 <#if field.primaryKey>
-  @Id
+    @Id
 </#if>
 <#if field.autoIncrement>
-  <#if field.generatedValueStrategy?has_content>
-  @GeneratedValue(strategy = GenerationType.${field.generatedValueStrategy})
-  <#else>
-  @GeneratedValue
-  </#if>
+    <#if field.generatedValueStrategy?has_content>
+    @GeneratedValue(strategy = GenerationType.${field.generatedValueStrategy})
+    <#else>
+    @GeneratedValue
+    </#if>
 </#if>
 <#list field.annotations as annotation>
-  ${annotation.toString()}
+    ${annotation.toString()}
 </#list>
 <#if requireJSR305 && !field.primitive>
-  <#if field.nullable>@Nullable<#else>@Nonnull</#if>
+    <#if field.nullable>@Nullable<#else>@Nonnull</#if>
 </#if>
-  @Column(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${field.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", nullable = ${field.nullable?c}<#if field.length??>, length = ${field.length?c}</#if><#if field.precision??>, precision = ${field.precision?c}</#if><#if field.scale??>, scale = ${field.scale?c}</#if>)
-  private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
+    @Column(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${field.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", nullable = ${field.nullable?c}<#if field.length??>, length = ${field.length?c}</#if><#if field.precision??>, precision = ${field.precision?c}</#if><#if field.scale??>, scale = ${field.scale?c}</#if>)
+    private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
 </#list>
+
 <#list foreignKeyFields as foreignKey>
-  <#if foreignKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
-  @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})
-  private ${foreignKey.type} ${foreignKey.name};
+    <#if foreignKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
+    @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${foreignKey.joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})
+    private ${foreignKey.type} ${foreignKey.name};
 </#list>
 <#list foreignCompositeKeyFields as foreignCompositeKey>
-  <#if foreignCompositeKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
-  @JoinColumns({
-  <#list foreignCompositeKey.joinColumns as joinColumn>
-    @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c}),
-  </#list>
-  })
-  private ${foreignCompositeKey.type} ${foreignCompositeKey.name};
+    <#if foreignCompositeKey.oneToOne>@OneToOne<#else>@ManyToOne</#if>
+    @JoinColumns({
+    <#list foreignCompositeKey.joinColumns as joinColumn>
+        @JoinColumn(name = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.columnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", referencedColumnName = "<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>${joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else><#if quotedColumnNames>\"</#if></#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})<#sep>,</#sep>
+    </#list>
+    })
+    private ${foreignCompositeKey.type} ${foreignCompositeKey.name};
 </#list>
-<#list importedKeyFields as importedKey>
-  @OneToMany(mappedBy = "${importedKey.mappedBy}")
-  private java.util.List<${importedKey.name}> listOf${importedKey.name};
-</#list><#if foldCode>
+<#list importedKeyFields as importedKey><#if importedKey.oneToOne>
+    @OneToOne(mappedBy = "${importedKey.mappedBy}")
+    private ${importedKey.type} ${importedKey.name};
+<#else>
+    @OneToMany(mappedBy = "${importedKey.mappedBy}")
+    private java.util.List<${importedKey.type}> ${importedKey.name}List;
+</#if></#list><#if foldCode>
 // </editor-fold>
 
 </#if><#list bottomAdditionalCodeList as code>
@@ -80,3 +84,4 @@ ${field.comment}
 ${code}
 </#list>
 }
+

@@ -210,8 +210,15 @@ public class CodeGenerator {
 
             table.getImportedKeys().forEach( i -> {
                 CodeRenderer.RenderingData.ImportedKeyField f = new CodeRenderer.RenderingData.ImportedKeyField();
-                f.setName(NameConverter.toClassName(i, config.getClassNameRules()));
-                f.setMappedBy(NameConverter.toFieldName(table.getName()));
+                f.setType(NameConverter.toClassName(i.getValue().get(0).getTable(), config.getClassNameRules()));
+                if (table.getImportedKeys().stream().filter(v->v.getValue().get(0).getTable().equals(i.getValue().get(0).getTable())).count() > 1) {
+                    f.setMappedBy(NameConverter.toFieldName(i.getValue().get(0).getPkTable(), i.getKey()));
+                    f.setName(NameConverter.toFieldName(i.getValue().get(0).getTable(), i.getKey()));
+                } else {
+                    f.setMappedBy(NameConverter.toFieldName(i.getValue().get(0).getPkTable()));
+                    f.setName(NameConverter.toFieldName(i.getValue().get(0).getTable()));
+                }
+                f.setOneToOne(i.getValue().stream().filter(j -> !j.isOneToOne()).findFirst().map(ForeignKey::isOneToOne).orElse(true));
                 data.getImportedKeyFields().add(f);
             });
 
@@ -301,8 +308,8 @@ public class CodeGenerator {
                     .filter(it -> it.getName().equals(e.getValue().getPkTable()))
                     .findFirst()
                     .orElse(null);
-                if (importedTable != null && !importedTable.getImportedKeys().contains(t.getName())) {
-                    importedTable.getImportedKeys().add(t.getName());
+                if (importedTable != null) {
+                    importedTable.getImportedKeys().add(new AbstractMap.SimpleEntry<String, List<ForeignKey>>(e.getKey(), Arrays.asList(e.getValue())));
                 }
                 return importedTable == null;
             });
@@ -312,8 +319,8 @@ public class CodeGenerator {
                     .filter(it -> it.getName().equals(e.getValue().get(0).getPkTable()))
                     .findFirst()
                     .orElse(null);
-                if (importedTable != null && !importedTable.getImportedKeys().contains(t.getName())) {
-                    importedTable.getImportedKeys().add(t.getName());
+                if (importedTable != null) {
+                    importedTable.getImportedKeys().add(e);
                 }
                 return importedTable == null;
             });

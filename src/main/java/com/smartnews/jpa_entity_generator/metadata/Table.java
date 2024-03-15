@@ -3,6 +3,7 @@ package com.smartnews.jpa_entity_generator.metadata;
 import lombok.Data;
 
 import java.util.*;
+import java.util.Map.Entry;
 
 /**
  * Database metadata: a table
@@ -16,5 +17,5 @@ public class Table {
     private List<Column> columns = new ArrayList<>();
     private Map<String, ForeignKey> foreignKeyMap = new HashMap<>();
     private Map<String, List<ForeignKey>> foreignCompositeKeyMap = new HashMap<>();
-    private List<String> importedKeys = new ArrayList<>();
+    private List<Entry<String, List<ForeignKey>>> importedKeys = new ArrayList<>();
 }

@@ -74,6 +74,7 @@ public class TableMetadataFetcher {
                         String name = importedKeys.getString("FK_NAME");
                         ForeignKey fk = new ForeignKey();
                         fk.setColumnName(importedKeys.getString("FKCOLUMN_NAME"));
+                        fk.setTable(importedKeys.getString("FKTABLE_NAME"));
                         fk.setPkTable(importedKeys.getString("PKTABLE_NAME"));
                         fk.setPkColumnName(importedKeys.getString("PKCOLUMN_NAME"));
                         if (tableInfo.getForeignKeyMap().containsKey(name)) {
