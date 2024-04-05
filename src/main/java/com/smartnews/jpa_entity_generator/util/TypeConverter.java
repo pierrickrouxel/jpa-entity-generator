@@ -64,13 +64,13 @@ public class TypeConverter {
             case Types.STRUCT:
                 return "Struct";
             case Types.TIME:
-                return "Time";
+                return "java.time.LocalDateTime";
             case Types.TIME_WITH_TIMEZONE:
-                return "Time";
+                return "java.time.OffsetDateTime";
             case Types.TIMESTAMP:
-                return "Timestamp";
+                return "java.time.LocalDateTime";
             case Types.TIMESTAMP_WITH_TIMEZONE:
-                return "Timestamp";
+                return "java.time.OffsetDateTime";
             case Types.TINYINT:
                 return "Byte";
             // case Types.VARBINARY:
