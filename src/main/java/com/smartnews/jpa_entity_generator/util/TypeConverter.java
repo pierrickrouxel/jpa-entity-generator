@@ -10,7 +10,7 @@ public class TypeConverter {
     private TypeConverter() {
     }
 
-    public static String toJavaType(int typeCode) {
+    public static String toJavaType(int typeCode, boolean javaTime) {
         switch (typeCode) {
             case Types.ARRAY:
                 return "Array";
@@ -64,13 +64,13 @@ public class TypeConverter {
             case Types.STRUCT:
                 return "Struct";
             case Types.TIME:
-                return "java.time.LocalDateTime";
+                return javaTime ? "java.time.LocalDateTime" : "Time";
             case Types.TIME_WITH_TIMEZONE:
-                return "java.time.OffsetDateTime";
+                return javaTime ? "java.time.OffsetDateTime" : "Time";
             case Types.TIMESTAMP:
-                return "java.time.LocalDateTime";
+                return javaTime ? "java.time.LocalDateTime" : "Timestamp";
             case Types.TIMESTAMP_WITH_TIMEZONE:
-                return "java.time.OffsetDateTime";
+                return javaTime ? "java.time.OffsetDateTime" : "Timestamp";
             case Types.TINYINT:
                 return "Byte";
             // case Types.VARBINARY:

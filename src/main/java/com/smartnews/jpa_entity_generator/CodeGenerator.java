@@ -139,7 +139,7 @@ public class CodeGenerator {
                     f.setType(fieldTypeRule.get().getTypeName());
                     f.setPrimitive(isPrimitive(f.getType()));
                 } else {
-                    f.setType(TypeConverter.toJavaType(c.getTypeCode()));
+                    f.setType(TypeConverter.toJavaType(c.getTypeCode(), originalConfig.isJavaTime()));
                     if (!c.isNullable() && config.isUsePrimitiveForNonNullField()) {
                         f.setType(TypeConverter.toPrimitiveTypeIfPossible(f.getType()));
                     }
