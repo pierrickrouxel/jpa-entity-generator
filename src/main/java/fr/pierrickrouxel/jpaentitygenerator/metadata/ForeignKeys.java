@@ -1,0 +1,11 @@
+package fr.pierrickrouxel.jpaentitygenerator.metadata;
+
+import lombok.Data;
+
+@Data
+public class ForeignKeys {
+    private String name;
+    private String columnName;
+    private String pkColumnName;
+    private String pkTable;
+}

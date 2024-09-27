@@ -46,22 +46,19 @@ ${field.comment}
 <#list field.annotations as annotation>
   ${annotation.toString()}
 </#list>
-<#if requireJSR305 && !field.primitive>
-  <#if field.nullable>@Nullable<#else>@Nonnull</#if>
-</#if>
-  @Column(name = "<#if jpa1Compatible>`<#else>\"</#if>${field.columnName}<#if jpa1Compatible>`<#else>\"</#if>", nullable = ${field.nullable?c}<#if field.length??>, length = ${field.length?c}</#if><#if field.precision??>, precision = ${field.precision?c}</#if><#if field.scale??>, scale = ${field.scale?c}</#if>)
+  @Column(name = "\"${field.columnName}\"", nullable = ${field.nullable?c}<#if field.length??>, length = ${field.length?c}</#if><#if field.precision??>, precision = ${field.precision?c}</#if><#if field.scale??>, scale = ${field.scale?c}</#if>)
   private ${field.type} ${field.name}<#if field.defaultValue??> = ${field.defaultValue}</#if>;
 </#list>
 <#list foreignKeyFields as foreignKey>
   @ManyToOne
-  @JoinColumn(name = "<#if jpa1Compatible>`<#else>\"</#if>${foreignKey.joinColumn.columnName}<#if jpa1Compatible>`<#else>\"</#if>", referencedColumnName = "<#if jpa1Compatible>`<#else>\"</#if>${foreignKey.joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else>\"</#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})
+  @JoinColumn(name = "\"${foreignKey.joinColumn.columnName}\"", referencedColumnName = "\"${foreignKey.joinColumn.referencedColumnName}\"", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c})
   private ${foreignKey.type} ${foreignKey.name};
 </#list>
 <#list foreignCompositeKeyFields as foreignCompositeKey>
   @ManyToOne
   @JoinColumns({
   <#list foreignCompositeKey.joinColumns as joinColumn>
-    @JoinColumn(name = "<#if jpa1Compatible>`<#else>\"</#if>${joinColumn.columnName}<#if jpa1Compatible>`<#else>\"</#if>", referencedColumnName = "<#if jpa1Compatible>`<#else>\"</#if>${joinColumn.referencedColumnName}<#if jpa1Compatible>`<#else>\"</#if>", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c}),
+    @JoinColumn(name = "\"${joinColumn.columnName}\"", referencedColumnName = "\"${joinColumn.referencedColumnName}\"", insertable = ${generateRelationshipsInsertable?c}, updatable = ${generateRelationshipsUpdatable?c}),
   </#list>
   })
   private ${foreignCompositeKey.type} ${foreignCompositeKey.name};
