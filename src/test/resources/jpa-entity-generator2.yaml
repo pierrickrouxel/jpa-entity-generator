@@ -2,7 +2,7 @@
 # *** JDBC configuration to fetch metadata ***
 
 jdbcSettings:
-  url: "jdbc:h2:file:./build/db/test"
+  url: "jdbc:h2:mem:test;DB_CLOSE_DELAY=-1"
   schemaPattern: PUBLIC
   driverClassName: "org.h2.Driver"
 

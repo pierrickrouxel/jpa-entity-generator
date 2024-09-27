@@ -1,14 +1,20 @@
-package fr.example.unit;
+package fr.pierrickrouxel.jpaentitygenerator;
 
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
-public class DatabaseUtil {
+import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
+
+public class TestDatabase {
+    public final static JdbcSettings jdbcSettings = JdbcSettings.builder()
+            .url("jdbc:h2:mem:test;DB_CLOSE_DELAY=-1")
+            .driverClassName("org.h2.Driver")
+            .schemaPattern("PUBLIC")
+            .build();
 
     public static void init() throws SQLException, ClassNotFoundException {
-        Class.forName("org.h2.Driver");
-        try (Connection conn = DriverManager.getConnection("jdbc:h2:file:./build/db/test")) {
+        try (Connection conn = DriverManager.getConnection(jdbcSettings.getUrl())) {
             conn.prepareStatement("create table if not exists blog (" +
                     "id integer primary key auto_increment not null, " +
                     "name varchar(30), " +
@@ -39,11 +45,6 @@ public class DatabaseUtil {
                     "config text" +
                     ")").execute();
             conn.prepareStatement("create table if not exists something_tmp (" +
-                    "identifier varchar(50) primary key not null, " +
-                    "expiration_timestamp integer not null, " +
-                    "config text" +
-                    ")").execute();
-            conn.prepareStatement("create table if not exists something_tmp2 (" +
                     "identifier varchar(50) primary key not null, " +
                     "expiration_timestamp integer not null, " +
                     "config text" +

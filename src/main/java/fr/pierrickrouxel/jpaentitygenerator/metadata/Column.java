@@ -1,12 +1,12 @@
 package fr.pierrickrouxel.jpaentitygenerator.metadata;
 
-import java.util.Optional;
-
+import lombok.Builder;
 import lombok.Data;
 
 /**
  * Database metadata: a column in a table
  */
+@Builder
 @Data
 public class Column {
 
@@ -18,5 +18,5 @@ public class Column {
     private boolean autoIncrement;
     private int columnSize;
     private int decimalDigits;
-    private Optional<String> description = Optional.empty();
+    private String description;
 }

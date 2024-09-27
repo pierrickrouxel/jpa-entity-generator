@@ -1,167 +1,136 @@
 package fr.pierrickrouxel.jpaentitygenerator.metadata;
 
-import fr.pierrickrouxel.jpaentitygenerator.config.JDBCSettings;
-import lombok.extern.slf4j.Slf4j;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.List;
 
-import java.sql.*;
-import java.util.*;
+import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Fetches metadata for all tables in a given database.
  */
 @Slf4j
-public class TableMetadataFetcher {
+@RequiredArgsConstructor
+public class TableMetaDataFetcher {
 
     private static final String[] TABLE_TYPES = new String[]{"TABLE", "VIEW"};
 
-    private DatabaseMetaData getMetadata(JDBCSettings settings) throws SQLException {
-        try {
-            Class.forName(settings.getDriverClassName());
-        } catch (ClassNotFoundException e) {
-            log.error("Failed to load JDBC driver (driver: {}, error: {})", settings.getDriverClassName(), e.getMessage(), e);
-            throw new SQLException(e);
-        }
-        Connection connection = DriverManager.getConnection(settings.getUrl(), settings.getUsername(), settings.getPassword());
-        return connection.getMetaData();
+    private final JdbcSettings jdbcSettings;
+
+    private Connection getConnection() throws SQLException {
+        return DriverManager.getConnection(jdbcSettings.getUrl(), jdbcSettings.getUsername(), jdbcSettings.getPassword());
     }
 
-    public List<String> getTableNames(JDBCSettings jdbcSettings) throws SQLException {
-        DatabaseMetaData databaseMeta = getMetadata(jdbcSettings);
-        try {
-            List<String> tableNames = new ArrayList<>();
-            try (ResultSet rs = databaseMeta.getTables(null,  jdbcSettings.getSchemaPattern(), "%", TABLE_TYPES)) {
+    public List<String> getTableNames() throws SQLException {
+        var tableNames = new ArrayList<String>();
+        try (var connection = getConnection()) {
+            try (var rs = connection.getMetaData().getTables(null, jdbcSettings.getSchemaPattern(), "%", TABLE_TYPES)) {
                 while (rs.next()) {
                     tableNames.add(rs.getString("TABLE_NAME"));
                 }
             }
-            return tableNames;
-        } finally {
-            databaseMeta.getConnection().close();
         }
+        return tableNames;
     }
 
-    public Table getTable(JDBCSettings jdbcSettings, String schemaAndTable, boolean generateRelationships) throws SQLException {
+    public Table getTable(String schemaName, String tableName, boolean generateRelationships) throws SQLException {
 
-        Table tableInfo = new Table();
+        var table = new Table();
 
-        String schema = extractSchema(schemaAndTable);
-        String table = extractTabeName(schemaAndTable);
-        tableInfo.setName(table);
-        tableInfo.setSchema(Optional.ofNullable(schema));
-        DatabaseMetaData databaseMeta = getMetadata(jdbcSettings);
-        try {
-            try (ResultSet rs = databaseMeta.getTables(null, schema, table, TABLE_TYPES)) {
-                if (rs.next()) {
-                    tableInfo.setDescription(Optional.ofNullable(rs.getString("REMARKS")));
-                }
-            } catch (Exception e) {
-                log.debug("Failed to fetch table comment", e);
-            }
+        table.setName(tableName);
+        try (var connection = getConnection()) {
+            var description = getDescription(connection, schemaName, tableName);
+            table.setDescription(description);
 
-            final List<String> primaryKeyNames = new ArrayList<>();
-            try (ResultSet rs = databaseMeta.getPrimaryKeys(null, schema, table)) {
-                while (rs.next()) {
-                    primaryKeyNames.add(rs.getString("COLUMN_NAME"));
-                }
-            }
+            var primaryKeyNames = getPrimaryKeyNames(connection, schemaName, tableName);
+
             if (generateRelationships) {
-                try (final ResultSet importedKeys = databaseMeta.getImportedKeys(null, jdbcSettings.getSchemaPattern(), table)) {
+                try (var importedKeys = connection.getMetaData().getImportedKeys(null, jdbcSettings.getSchemaPattern(), tableName)) {
                     while (importedKeys.next()) {
-                        String name = importedKeys.getString("FK_NAME");
-                        ForeignKey fk = new ForeignKey();
+                        var name = importedKeys.getString("FK_NAME");
+                        var fk = new ForeignKey();
                         fk.setColumnName(importedKeys.getString("FKCOLUMN_NAME"));
                         fk.setPkTable(importedKeys.getString("PKTABLE_NAME"));
                         fk.setPkColumnName(importedKeys.getString("PKCOLUMN_NAME"));
-                        if (tableInfo.getForeignKeyMap().containsKey(name)) {
-                            List<ForeignKey> fkList = new ArrayList<>();
-                            fkList.add(tableInfo.getForeignKeyMap().get(name));
+                        if (table.getForeignKeyMap().containsKey(name)) {
+                            var fkList = new ArrayList<ForeignKey>();
+                            fkList.add(table.getForeignKeyMap().get(name));
                             fkList.add(fk);
-                            tableInfo.getForeignCompositeKeyMap().put(name, fkList);
-                            tableInfo.getForeignKeyMap().remove(name);
-                        }
-                        else if (tableInfo.getForeignCompositeKeyMap().containsKey(name)) {
-                            tableInfo.getForeignCompositeKeyMap().get(name).add(fk);
-                        }
-                        else {
-                            tableInfo.getForeignKeyMap().put(name, fk);
+                            table.getForeignCompositeKeyMap().put(name, fkList);
+                            table.getForeignKeyMap().remove(name);
+                        } else if (table.getForeignCompositeKeyMap().containsKey(name)) {
+                            table.getForeignCompositeKeyMap().get(name).add(fk);
+                        } else {
+                            table.getForeignKeyMap().put(name, fk);
                         }
                     }
                 }
             }
-            try (ResultSet rs = databaseMeta.getColumns(null, schema, table, "%")) {
-                while (rs.next()) {
-                    Column column = new Column();
-                    column.setName(rs.getString("COLUMN_NAME"));
-                    column.setTypeCode(rs.getInt("DATA_TYPE"));
-                    column.setTypeName(rs.getString("TYPE_NAME"));
-                    column.setColumnSize(rs.getInt("COLUMN_SIZE"));
-                    column.setDecimalDigits(rs.getInt("DECIMAL_DIGITS"));
 
-                    // Oracle throws java.sql.SQLException: Invalid column name
-                    boolean autoIncrement = false;
-                    try {
-                        String autoIncrementMetadata = rs.getString("IS_AUTOINCREMENT");
-                        autoIncrement = autoIncrementMetadata != null && autoIncrementMetadata.equals("YES");
-                    } catch (Exception e) {
-                        log.debug("Failed to fetch auto_increment flag for {}.{}", table, column.getName(), e);
-                    }
-                    column.setAutoIncrement(autoIncrement);
+            var columns = getColumns(connection, schemaName, tableName, primaryKeyNames);
+            table.setColumns(columns);
 
-                    try {
-                        column.setDescription(Optional.ofNullable(rs.getString("REMARKS")));
-                    } catch (Exception e) {
-                        log.debug("Failed to fetch comment flag for {}.{}", table, column.getName(), e);
-                    }
+            return table;
 
-                    boolean nullable = true;
-                    try {
-                        String isNullableMetadata = rs.getString("IS_NULLABLE");
-                        nullable = isNullableMetadata == null || isNullableMetadata.equals("YES");
-                    } catch (Exception e) {
-                        log.debug("Failed to fetch nullable flag for {}.{}", table, column.getName(), e);
-                    }
-                    column.setNullable(nullable);
-
-                    boolean primaryKey = false;
-                    try {
-                        primaryKey = primaryKeyNames.stream().filter(pk -> pk.equals(columnName(rs))).count() > 0;
-                    } catch (Exception e) {
-                        log.debug("Failed to fetch primary key or not for {}.{}", table, column.getName(), e);
-                    }
-                    column.setPrimaryKey(primaryKey);
-
-                    tableInfo.getColumns().add(column);
-                }
-            }
-            return tableInfo;
-
-        } finally {
-            databaseMeta.getConnection().close();
         }
     }
 
-    private static final String columnName(ResultSet rs) {
+    private String getDescription(Connection connection, String schemaName, String tableName) throws SQLException {
+        try (var rs = connection.getMetaData().getTables(null, schemaName, tableName, TABLE_TYPES)) {
+            if (rs.next()) {
+                return rs.getString("REMARKS");
+            }
+        }
+        return null;
+    }
+
+    private List<String> getPrimaryKeyNames(Connection connection, String schemaName, String tableName) throws SQLException {
+        var primaryKeyNames = new ArrayList<String>();
+        try (var rs = connection.getMetaData().getPrimaryKeys(null, schemaName, tableName)) {
+            while (rs.next()) {
+                primaryKeyNames.add(rs.getString("COLUMN_NAME"));
+            }
+        }
+        return primaryKeyNames;
+    }
+
+    private List<Column> getColumns(Connection connection, String schemaName, String tableName, List<String> primaryKeyNames) throws SQLException {
+        var columns = new ArrayList<Column>();
+        try (var rs = connection.getMetaData().getColumns(null, schemaName, tableName, "%")) {
+            while (rs.next()) {
+                var columnName = rs.getString("COLUMN_NAME");
+
+                var column = Column.builder()
+                        .name(columnName)
+                        .typeCode(rs.getInt("DATA_TYPE"))
+                        .typeName(rs.getString("TYPE_NAME"))
+                        .columnSize(rs.getInt("COLUMN_SIZE"))
+                        .decimalDigits(rs.getInt("DECIMAL_DIGITS"))
+                        .description(rs.getString("REMARKS"))
+                        .autoIncrement(getBooleanResult(rs, tableName, "IS_AUTOINCREMENT"))
+                        .nullable(getBooleanResult(rs, tableName, "IS_NULLABLE"))
+                        .primaryKey(primaryKeyNames.stream().anyMatch(pk -> pk.equals(columnName)))
+                        .build();
+
+                columns.add(column);
+            }
+        }
+        return columns;
+    }
+
+    private boolean getBooleanResult(ResultSet rs, String tableName, String columnName) {
         try {
-            return rs.getString("COLUMN_NAME");
+            var isNullableMetadata = rs.getString("IS_NULLABLE");
+            return isNullableMetadata == null || isNullableMetadata.equals("YES");
         } catch (SQLException e) {
-            return null;
+            log.debug("Failed to fetch nullable flag for {}.{}", tableName, columnName, e);
         }
-    }
-
-    private static String extractSchema(String schemaAndTable) {
-        if (schemaAndTable.contains(".")) {
-            return schemaAndTable.split(".")[0];
-        } else {
-            return null;
-        }
-    }
-
-    private static String extractTabeName(String schemaAndTable) {
-        if (schemaAndTable.contains(".")) {
-            return schemaAndTable.split(".")[1];
-        } else {
-            return schemaAndTable;
-        }
+        return false;
     }
 
 }

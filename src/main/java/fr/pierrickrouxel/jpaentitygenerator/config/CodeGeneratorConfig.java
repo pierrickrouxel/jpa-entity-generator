@@ -1,14 +1,33 @@
 package fr.pierrickrouxel.jpaentitygenerator.config;
 
-import fr.pierrickrouxel.jpaentitygenerator.rule.*;
-import fr.pierrickrouxel.jpaentitygenerator.util.ResourceReader;
-import lombok.Data;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.*;
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import fr.pierrickrouxel.jpaentitygenerator.rule.AdditionalCodeRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.Annotation;
+import fr.pierrickrouxel.jpaentitygenerator.rule.ClassAdditionalCommentRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.ClassAnnotationRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldAdditionalCommentRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldAnnotationRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldDefaultValueRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldTypeRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.ImportRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.InterfaceRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.TableExclusionRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.TableScanRule;
+import fr.pierrickrouxel.jpaentitygenerator.util.ResourceReader;
+import lombok.Data;
 
 /**
  * Code generator's configuration.
@@ -48,7 +67,7 @@ public class CodeGeneratorConfig implements Serializable {
 
     public void loadEnvVariables(Map<String, String> environment) {
         // JDBC settings
-        JDBCSettings settings = getJdbcSettings();
+        JdbcSettings settings = getJdbcSettings();
         if (hasEnvVariables(settings.getUrl())) {
             settings.setUrl(replaceEnvVariables(settings.getUrl(), environment));
         }
@@ -66,8 +85,6 @@ public class CodeGeneratorConfig implements Serializable {
     static boolean hasEnvVariables(String value) {
         return value != null && value.contains("${");
     }
-
-    private static final Pattern REPLACE_ENV_VARIABLES_PATTERN = Pattern.compile("(\\$\\{[^}]+\\})");
 
     static String replaceEnvVariables(String value, Map<String, String> environment) {
         Map<String, String> envMap = new HashMap<>(environment);
@@ -92,7 +109,7 @@ public class CodeGeneratorConfig implements Serializable {
         }
     }
 
-    private JDBCSettings jdbcSettings;
+    private JdbcSettings jdbcSettings;
 
     private List<String> tableNames = new ArrayList<>();
     private String tableScanMode = "All"; // possible values: All, RuleBased
@@ -132,6 +149,10 @@ public class CodeGeneratorConfig implements Serializable {
     private List<AdditionalCodeRule> additionalCodeRules = new ArrayList<>();
 
     private static final Yaml YAML = new Yaml();
+
+    public static CodeGeneratorConfig load(String path) throws IOException {
+        return load(path, new HashMap<>());
+    }
 
     public static CodeGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
         try (InputStream is = ResourceReader.getResourceAsStream(path)) {
