@@ -7,7 +7,6 @@ import java.nio.file.Paths;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -25,7 +24,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import fr.pierrickrouxel.jpaentitygenerator.config.CodeGeneratorConfig;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Column;
-import fr.pierrickrouxel.jpaentitygenerator.metadata.ForeignKey;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Table;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.TableMetaDataFetcher;
 import fr.pierrickrouxel.jpaentitygenerator.rule.AdditionalCodePosition;
@@ -143,34 +141,15 @@ public class CodeGenerator {
 
         }).collect(toList());
 
-        table.getForeignKeyMap().forEach((key, value) -> {
-            CodeRenderer.RenderingData.ForeignKeyField f = new CodeRenderer.RenderingData.ForeignKeyField();
-            CodeRenderer.RenderingData.JoinColumn jc = new CodeRenderer.RenderingData.JoinColumn();
-            jc.setColumnName(value.getColumnName());
-            jc.setReferencedColumnName(value.getPkColumnName());
-            f.setName(NameConverter.toFieldName(value.getPkTable()));
-            f.setType(NameConverter.toClassName(value.getPkTable(), config.getClassNameRules()));
-            f.setJoinColumn(jc);
-            data.getForeignKeyFields().add(f);
-        });
-        table.getForeignCompositeKeyMap().forEach((key, value) -> {
-            CodeRenderer.RenderingData.ForeignCompositeKeyField f = new CodeRenderer.RenderingData.ForeignCompositeKeyField();
-            f.setJoinColumns(value.stream().map(j -> {
-                CodeRenderer.RenderingData.JoinColumn jc = new CodeRenderer.RenderingData.JoinColumn();
-                jc.setColumnName(j.getPkColumnName());
-                jc.setReferencedColumnName(j.getPkColumnName());
-                return jc;
-            }).collect(toList()));
-            f.setName(NameConverter.toFieldName(value.get(0).getPkTable()));
-            f.setType(NameConverter.toClassName(value.get(0).getPkTable(), config.getClassNameRules()));
+        table.getExportedKeys().forEach((value) -> {
+            var f = new CodeRenderer.RenderingData.ForeignCompositeKeyField();
+            var jc = new CodeRenderer.RenderingData.JoinColumn();
+            jc.setColumnName(value.getPrimaryKeyColumnName());
+            jc.setReferencedColumnName(value.getForeignKeyColumnName());
+            f.setJoinColumns(List.of(jc));
+            f.setName(NameConverter.toFieldName(value.getForeignKeyTableName()));
+            f.setType(NameConverter.toClassName(value.getForeignKeyTableName(), config.getClassNameRules()));
             data.getForeignCompositeKeyFields().add(f);
-        });
-
-        table.getImportedKeys().forEach(i -> {
-            CodeRenderer.RenderingData.ImportedKeyField f = new CodeRenderer.RenderingData.ImportedKeyField();
-            f.setName(NameConverter.toClassName(i, config.getClassNameRules()));
-            f.setMappedBy(NameConverter.toFieldName(table.getName()));
-            data.getImportedKeyFields().add(f);
         });
 
         if (fields.stream().noneMatch(primaryKeyPredicate)) {
@@ -263,53 +242,11 @@ public class CodeGenerator {
                 log.debug("Skipped to generate entity for {}", tableName);
                 continue;
             }
-            CodeGeneratorConfig config = SerializationUtils.clone(originalConfig);
-            tables.add(metaDataFetcher.getTable(null, tableName, config.isGenerateRelationships()));
+            tables.add(metaDataFetcher.getTable(null, tableName));
         }
-        searchImportedKeys(tables);
         for (Table table : tables) {
             generateOne(originalConfig, table);
         }
-    }
-
-    /**
-     * Use the foreign key informations to build the imported key. If the
-     * foreign key reference an excluded table, remove the foreign key
-     * informations.
-     *
-     * @param tables
-     */
-    private static void searchImportedKeys(List<Table> tables) {
-        tables.forEach(t -> {
-            t.getForeignKeyMap().entrySet().removeIf(e -> {
-                final Table importedTable = tables
-                        .stream()
-                        .filter(it -> it.getName().equals(e.getValue().getPkTable()))
-                        .findFirst()
-                        .orElse(null);
-                if (importedTable != null && !importedTable.getImportedKeys().contains(t.getName())) {
-                    importedTable.getImportedKeys().add(t.getName());
-                }
-                return importedTable == null;
-            });
-            t.getForeignCompositeKeyMap().entrySet().removeIf(e -> {
-                final Table importedTable = tables
-                        .stream()
-                        .filter(it -> it.getName().equals(e.getValue().get(0).getPkTable()))
-                        .findFirst()
-                        .orElse(null);
-                if (importedTable != null && !importedTable.getImportedKeys().contains(t.getName())) {
-                    importedTable.getImportedKeys().add(t.getName());
-                }
-                return importedTable == null;
-            });
-
-            // remove column mapping if present in foreign key mapping
-            t.getColumns().removeIf(c
-                    -> Stream.concat(t.getForeignKeyMap().values().stream(), t.getForeignCompositeKeyMap().values().stream()
-                            .flatMap(Collection::stream))
-                            .map(ForeignKey::getColumnName).collect(toList()).contains(c.getName()));
-        });
     }
 
     private static List<String> filterTableNames(CodeGeneratorConfig config, List<String> allTableNames) {
@@ -338,7 +275,8 @@ public class CodeGenerator {
                 }
                 return filteredTableNames;
             }
-            default -> throw new IllegalStateException("Invalid value (" + tableScanMode + ") is specified for tableScanName");
+            default ->
+                throw new IllegalStateException("Invalid value (" + tableScanMode + ") is specified for tableScanName");
         }
     }
 
@@ -359,7 +297,7 @@ public class CodeGenerator {
     }
 
     private static String buildFieldComment(String className, String fieldName, Column column, List<FieldAdditionalCommentRule> rules) {
-        List<String> comment = Optional.ofNullable(column.getDescription())
+        List<String> comment = Optional.ofNullable(column.getRemarks())
                 .map(c -> Arrays.stream(c.split("\n")).filter(l -> l != null && !l.isEmpty()).collect(toList()))
                 .orElse(Collections.emptyList());
         List<String> additionalComments = rules.stream()

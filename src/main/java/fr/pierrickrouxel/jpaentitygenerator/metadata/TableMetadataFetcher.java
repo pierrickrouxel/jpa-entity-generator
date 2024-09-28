@@ -38,45 +38,25 @@ public class TableMetaDataFetcher {
         return tableNames;
     }
 
-    public Table getTable(String schemaName, String tableName, boolean generateRelationships) throws SQLException {
+    public Table getTable(String schemaName, String tableName) throws SQLException {
 
-        var table = new Table();
-
-        table.setName(tableName);
         try (var connection = getConnection()) {
             var description = getDescription(connection, schemaName, tableName);
-            table.setDescription(description);
 
             var primaryKeyNames = getPrimaryKeyNames(connection, schemaName, tableName);
 
-            if (generateRelationships) {
-                try (var importedKeys = connection.getMetaData().getImportedKeys(null, jdbcSettings.getSchemaPattern(), tableName)) {
-                    while (importedKeys.next()) {
-                        var name = importedKeys.getString("FK_NAME");
-                        var fk = new ForeignKey();
-                        fk.setColumnName(importedKeys.getString("FKCOLUMN_NAME"));
-                        fk.setPkTable(importedKeys.getString("PKTABLE_NAME"));
-                        fk.setPkColumnName(importedKeys.getString("PKCOLUMN_NAME"));
-                        if (table.getForeignKeyMap().containsKey(name)) {
-                            var fkList = new ArrayList<ForeignKey>();
-                            fkList.add(table.getForeignKeyMap().get(name));
-                            fkList.add(fk);
-                            table.getForeignCompositeKeyMap().put(name, fkList);
-                            table.getForeignKeyMap().remove(name);
-                        } else if (table.getForeignCompositeKeyMap().containsKey(name)) {
-                            table.getForeignCompositeKeyMap().get(name).add(fk);
-                        } else {
-                            table.getForeignKeyMap().put(name, fk);
-                        }
-                    }
-                }
-            }
-
             var columns = getColumns(connection, schemaName, tableName, primaryKeyNames);
-            table.setColumns(columns);
 
-            return table;
+            var importedKeys = getImportedKeys(connection, schemaName, tableName);
+            var exportedKeys = getExportedKeys(connection, schemaName, tableName);
 
+            return Table.builder()
+                    .name(tableName)
+                    .description(description)
+                    .importedKeys(importedKeys)
+                    .exportedKeys(exportedKeys)
+                    .columns(columns)
+                    .build();
         }
     }
 
@@ -111,7 +91,7 @@ public class TableMetaDataFetcher {
                         .typeName(rs.getString("TYPE_NAME"))
                         .columnSize(rs.getInt("COLUMN_SIZE"))
                         .decimalDigits(rs.getInt("DECIMAL_DIGITS"))
-                        .description(rs.getString("REMARKS"))
+                        .remarks(rs.getString("REMARKS"))
                         .autoIncrement(getBooleanResult(rs, tableName, "IS_AUTOINCREMENT"))
                         .nullable(getBooleanResult(rs, tableName, "IS_NULLABLE"))
                         .primaryKey(primaryKeyNames.stream().anyMatch(pk -> pk.equals(columnName)))
@@ -123,14 +103,46 @@ public class TableMetaDataFetcher {
         return columns;
     }
 
+    private List<Key> getImportedKeys(Connection connection, String schemaName, String tableName) throws SQLException {
+        var keys = new ArrayList<Key>();
+        try (var rs = connection.getMetaData().getImportedKeys(null, schemaName, tableName)) {
+            while (rs.next()) {
+                var key = getKey(rs);
+                keys.add(key);
+            }
+        }
+        return keys;
+    }
+
+    private List<Key> getExportedKeys(Connection connection, String schemaName, String tableName) throws SQLException {
+        var keys = new ArrayList<Key>();
+        try (var rs = connection.getMetaData().getExportedKeys(null, schemaName, tableName)) {
+            while (rs.next()) {
+                var key = getKey(rs);
+                keys.add(key);
+            }
+        }
+        return keys;
+    }
+
+    private Key getKey(ResultSet rs) throws SQLException {
+        return Key.builder()
+                .primaryKeyName(rs.getString("PK_NAME"))
+                .primaryKeyTableName(rs.getString("PKTABLE_NAME"))
+                .primaryKeyColumnName(rs.getString("PKCOLUMN_NAME"))
+                .foreignKeyName(rs.getString("FK_NAME"))
+                .foreignKeyTableName(rs.getString("FKTABLE_NAME"))
+                .foreignKeyColumnName(rs.getString("FKCOLUMN_NAME"))
+                .build();
+    }
+
     private boolean getBooleanResult(ResultSet rs, String tableName, String columnName) {
         try {
-            var isNullableMetadata = rs.getString("IS_NULLABLE");
+            var isNullableMetadata = rs.getString(columnName);
             return isNullableMetadata == null || isNullableMetadata.equals("YES");
         } catch (SQLException e) {
             log.debug("Failed to fetch nullable flag for {}.{}", tableName, columnName, e);
         }
         return false;
     }
-
 }

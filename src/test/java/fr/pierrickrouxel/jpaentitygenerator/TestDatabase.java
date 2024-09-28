@@ -15,39 +15,40 @@ public class TestDatabase {
 
     public static void init() throws SQLException, ClassNotFoundException {
         try (Connection conn = DriverManager.getConnection(jdbcSettings.getUrl())) {
-            conn.prepareStatement("create table if not exists blog (" +
-                    "id integer primary key auto_increment not null, " +
-                    "name varchar(30), " +
-                    "active tinyint default 0, " +
-                    "created_at timestamp not null" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS blog (" +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, " +
+                    "name VARCHAR(30), " +
+                    "active TINYINT DEFAULT 0, " +
+                    "created_at TIMESTAMP NOT NULL" +
                     ")").execute();
-            conn.prepareStatement("create table if not exists article (" +
-                    "id integer primary key auto_increment not null, " +
-                    "blog_id integer comment 'database comment for blog_id' references blog(id), " +
-                    "name varchar(30), tags text, " +
-                    "created_at timestamp not null" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS article (" +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, " +
+                    "blog_id INTEGER COMMENT 'database comment for blog_id' references blog(id), " +
+                    "name VARCHAR(30), " +
+                    "tags text, " +
+                    "created_at TIMESTAMP NOT NULL" +
                     ")").execute();
-            conn.prepareStatement("create table if not exists tag (" +
-                    "id integer primary key auto_increment not null, " +
-                    "tag varchar(100), " +
-                    "average numeric(9,2), " +
-                    "created_at timestamp not null" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS tag (" +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, " +
+                    "tag VARCHAR(100), " +
+                    "average NUMERIC(9,2), " +
+                    "created_at TIMESTAMP NOT NULL" +
                     ")").execute();
-            conn.prepareStatement("create table if not exists article_tag (" +
-                    "id integer primary key auto_increment not null, " +
-                    "article_id integer not null comment 'database comment for article_id' references article(id), " +
-                    "tag_id integer not null comment 'database comment for blog_id' references tag(id), " +
-                    "created_at timestamp not null" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS article_tag (" +
+                    "id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, " +
+                    "article_id INTEGER NOT NULL COMMENT 'database comment for article_id' REFERENCES ARTICLE(id), " +
+                    "tag_id INTEGER NOT NULL COMMENT 'database comment for blog_id' REFERENCES TAG(id), " +
+                    "created_at TIMESTAMP NOT NULL" +
                     ")").execute();
-            conn.prepareStatement("create table if not exists abtest (" +
-                    "identifier varchar(50) primary key not null, " +
-                    "expiration_timestamp integer not null, " +
-                    "config text" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS abtest (" +
+                    "identifier VARCHAR(50) PRIMARY KEY NOT NULL, " +
+                    "expiration_timestamp INTEGER NOT NULL, " +
+                    "config TEXT" +
                     ")").execute();
-            conn.prepareStatement("create table if not exists something_tmp (" +
-                    "identifier varchar(50) primary key not null, " +
-                    "expiration_timestamp integer not null, " +
-                    "config text" +
+            conn.prepareStatement("CREATE TABLE IF NOT EXISTS something_tmp (" +
+                    "identifier VARCHAR(50) PRIMARY KEY NOT NULL, " +
+                    "expiration_timestamp INTEGER NOT NULL, " +
+                    "config TEXT" +
                     ")").execute();
         }
 
