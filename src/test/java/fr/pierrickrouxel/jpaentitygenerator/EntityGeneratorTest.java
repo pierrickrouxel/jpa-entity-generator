@@ -15,6 +15,7 @@ import com.squareup.javapoet.AnnotationSpec;
 
 import fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Column;
+import fr.pierrickrouxel.jpaentitygenerator.metadata.Index;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Key;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Table;
 import fr.pierrickrouxel.jpaentitygenerator.rule.Annotation;
@@ -68,12 +69,37 @@ public class EntityGeneratorTest {
     }
 
     @Test
+    public void testGetFieldUnique() {
+        var indexes = List.of(
+          Index.builder().name("CODE_CONSTRAINT").columnName("CODE").nonUnique(false).build(),
+                Index.builder().name("NAME_CONSTRAINT").columnName("NAME").nonUnique(true).build()
+                );
+        var codeColumn = Column.builder().name("CODE").typeCode(4).build();
+        var nameColumn = Column.builder().name("NAME").typeCode(4).build();
+
+        assertThat(EntityGenerator.getField(codeColumn, "Article", indexes, Collections.emptyList(), new EntityGeneratorConfig()).toString()).startsWith("""
+        @jakarta.persistence.Column(
+            name = "CODE",
+            nullable = false,
+            unique = true
+        )
+        """);
+        assertThat(EntityGenerator.getField(nameColumn, "Article", indexes, Collections.emptyList(), new EntityGeneratorConfig()).toString()).startsWith("""
+        @jakarta.persistence.Column(
+            name = "NAME",
+            nullable = false,
+            unique = false
+        )
+        """);
+    }
+
+    @Test
     public void testGetFieldWithValue() {
         var column = Column.builder().name("CODE").typeCode(4).build();
         var defaultValueRules = List.of(FieldDefaultValueRule.builder().className("Article").fieldName("code").defaultValue("1").build());
         var config = EntityGeneratorConfig.builder().fieldDefaultValueRules(defaultValueRules).build();
 
-        assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), config).initializer.toString()).isEqualTo("1");
+        assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), Collections.emptyList(), config).initializer.toString()).isEqualTo("1");
     }
 
     @Test
@@ -83,7 +109,7 @@ public class EntityGeneratorTest {
         var defaultValueRules = List.of(FieldDefaultValueRule.builder().className("Article").fieldName("code").defaultValue("1").build());
         var config = EntityGeneratorConfig.builder().fieldDefaultValueRules(defaultValueRules).build();
 
-        assertThat(EntityGenerator.getField(column, "Article", importedKeys, config).toString()).isEqualTo("""
+        assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), importedKeys, config).toString()).isEqualTo("""
         @jakarta.persistence.ManyToOne
         @jakarta.persistence.JoinColumn(
             name = "BLOG_ID",
@@ -115,7 +141,7 @@ public class EntityGeneratorTest {
                 FieldAnnotationRule.builder().className("Article").fieldName("code").annotations(articleCodeAnnotations).build(),
                 FieldAnnotationRule.builder().className("Blog").fieldName("name").annotations(blogNameAnnotations).build()
         );
-        var classAnnotationSpecs = EntityGenerator.getFieldAnnotations(column, "Article", "name", null, fieldAnnotationRules);
+        var classAnnotationSpecs = EntityGenerator.getFieldAnnotations(column, false, "Article", "name", null, fieldAnnotationRules);
         assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).contains("@ArticleNameAnnotation");
         assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).doesNotContain("@BlogNameAnnotation", "@ArticleCodeAnnotation");
     }
@@ -123,19 +149,19 @@ public class EntityGeneratorTest {
     @Test
     public void testGetColumnAnnotationString() {
         var column = Column.builder().name("NAME").typeCode(12).columnSize(50).build();
-        assertThat(EntityGenerator.getColumnAnnotation(column).toString()).isEqualTo("@jakarta.persistence.Column(name = \"NAME\", nullable = false, length = 50)");
+        assertThat(EntityGenerator.getColumnAnnotation(column, false).toString()).isEqualTo("@jakarta.persistence.Column(name = \"NAME\", nullable = false, unique = false, length = 50)");
     }
 
     @Test
     public void testGetColumnAnnotationInteger() {
         var column = Column.builder().name("CODE").typeCode(4).build();
-        assertThat(EntityGenerator.getColumnAnnotation(column).toString()).isEqualTo("@jakarta.persistence.Column(name = \"CODE\", nullable = false)");
+        assertThat(EntityGenerator.getColumnAnnotation(column, false).toString()).isEqualTo("@jakarta.persistence.Column(name = \"CODE\", nullable = false, unique = false)");
     }
 
     @Test
     public void testGetColumnAnnotationBigDecimal() {
         var column = Column.builder().name("AVERAGE").typeCode(2).columnSize(9).decimalDigits(2).build();
-        assertThat(EntityGenerator.getColumnAnnotation(column).toString()).isEqualTo("@jakarta.persistence.Column(name = \"AVERAGE\", nullable = false, precision = \"9\", scale = \"2\")");
+        assertThat(EntityGenerator.getColumnAnnotation(column, false).toString()).isEqualTo("@jakarta.persistence.Column(name = \"AVERAGE\", nullable = false, unique = false, precision = \"9\", scale = \"2\")");
     }
 
     private String getExample(String entityName) throws IOException, URISyntaxException {

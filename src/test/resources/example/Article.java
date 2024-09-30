@@ -22,7 +22,8 @@ import lombok.NoArgsConstructor;
 class Article {
   @Column(
       name = "ID",
-      nullable = false
+      nullable = false,
+      unique = false
   )
   @Id
   @GeneratedValue(
@@ -33,6 +34,7 @@ class Article {
   @Column(
       name = "NAME",
       nullable = false,
+      unique = false,
       length = 50
   )
   private String name;

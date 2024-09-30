@@ -22,6 +22,7 @@ import com.squareup.javapoet.TypeSpec;
 
 import fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Column;
+import fr.pierrickrouxel.jpaentitygenerator.metadata.Index;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Key;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Table;
 import fr.pierrickrouxel.jpaentitygenerator.rule.Annotation;
@@ -46,7 +47,7 @@ public class EntityGenerator {
         var className = NameConverter.toClassName(table.getName(), config.getClassNameRules());
 
         var fields = table.getColumns().stream()
-                .map(o -> getField(o, className, table.getImportedKeys(), config))
+                .map(o -> getField(o, className, table.getIndexes(), table.getImportedKeys(), config))
                 .collect(Collectors.toList());
 
         var classSpecBuilder = TypeSpec.classBuilder(className)
@@ -122,15 +123,17 @@ public class EntityGenerator {
         return annotationSpecs;
     }
 
-    public static FieldSpec getField(Column column, String className, List<Key> importedKeys, EntityGeneratorConfig config) {
+    public static FieldSpec getField(Column column, String className, List<Index> indexes, List<Key> importedKeys, EntityGeneratorConfig config) {
         var fieldName = NameConverter.toFieldName(column.getName());
 
-        var importedKey = importedKeys.stream()
+        var isUnique = checkColumnUnique(column, indexes);
+
+        var columnImportedKey = importedKeys.stream()
                 .filter(o -> o.getForeignKeyColumnName().equals(column.getName()))
                 .findAny()
                 .orElse(null);
-        if (importedKey != null) {
-            return getManyToOneField(column, importedKey, config.getClassNameRules());
+        if (columnImportedKey != null) {
+            return getManyToOneField(column, columnImportedKey, config.getClassNameRules());
         }
 
         var typeName = getFieldType(fieldName, column.getTypeCode(), className, config.getFieldTypeRules());
@@ -142,7 +145,7 @@ public class EntityGenerator {
             fieldSpecBuilder.addJavadoc(fieldComment);
         }
 
-        fieldSpecBuilder.addAnnotations(getFieldAnnotations(column, className, fieldName, config.getGeneratedValueStrategy(), config.getFieldAnnotationRules()));
+        fieldSpecBuilder.addAnnotations(getFieldAnnotations(column, isUnique, className, fieldName, config.getGeneratedValueStrategy(), config.getFieldAnnotationRules()));
 
         config.getFieldDefaultValueRules().stream()
                 .filter(r -> r.matches(className, fieldName))
@@ -196,9 +199,9 @@ public class EntityGenerator {
         return comment.stream().collect(joining("\n"));
     }
 
-    public static List<AnnotationSpec> getFieldAnnotations(Column column, String className, String fieldName, String generatedValueStrategy, List<FieldAnnotationRule> fieldAnnotationRules) {
+    public static List<AnnotationSpec> getFieldAnnotations(Column column, boolean isUnique, String className, String fieldName, String generatedValueStrategy, List<FieldAnnotationRule> fieldAnnotationRules) {
         var annotationSpecs = new ArrayList<AnnotationSpec>();
-        annotationSpecs.add(getColumnAnnotation(column));
+        annotationSpecs.add(getColumnAnnotation(column, isUnique));
 
         if (column.isPrimaryKey()) {
             annotationSpecs.add(getIdAnnotation());
@@ -217,10 +220,11 @@ public class EntityGenerator {
         return annotationSpecs;
     }
 
-    public static AnnotationSpec getColumnAnnotation(Column column) {
+    public static AnnotationSpec getColumnAnnotation(Column column, boolean isUnique) {
         var columnAnnotationBuilder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Column"))
                 .addMember("name", "$S", column.getName())
-                .addMember("nullable", "$L", column.isNullable());
+                .addMember("nullable", "$L", column.isNullable())
+                .addMember("unique", "$L", isUnique);
 
         var javaType = TypeConverter.toJavaType(column.getTypeCode());
 
@@ -253,5 +257,10 @@ public class EntityGenerator {
         var annotationSpecBuilder = AnnotationSpec.builder(ClassName.bestGuess(annotation.getClassName()));
         annotation.getAttributes().forEach(o -> annotationSpecBuilder.addMember(o.getName(), o.getValue()));
         return annotationSpecBuilder.build();
+    }
+
+    private static boolean checkColumnUnique(Column column, List<Index> indexes) {
+      return indexes.stream()
+        .anyMatch(o -> o.getColumnName().equals(column.getName()) && !o.isNonUnique());
     }
 }

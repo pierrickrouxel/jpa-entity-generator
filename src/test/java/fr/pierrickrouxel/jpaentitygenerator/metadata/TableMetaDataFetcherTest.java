@@ -78,7 +78,7 @@ public class TableMetaDataFetcherTest {
     }
 
     @Test
-    public void testGetTableExportedKey() throws SQLException {
+    public void testGetTableExportedKeys() throws SQLException {
         var table = fetcher.getTable("ARTICLE");
         assertThat(table.getExportedKeys()).hasSize(1);
         assertThat(table.getExportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("ARTICLE");
@@ -88,13 +88,20 @@ public class TableMetaDataFetcherTest {
     }
 
     @Test
-    public void testGetTableImportedKey() throws SQLException {
+    public void testGetTableImportedKeys() throws SQLException {
         var table = fetcher.getTable("ARTICLE");
         assertThat(table.getImportedKeys()).hasSize(1);
         assertThat(table.getImportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("BLOG");
         assertThat(table.getImportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
         assertThat(table.getImportedKeys().getFirst().getForeignKeyTableName()).isEqualTo("ARTICLE");
         assertThat(table.getImportedKeys().getFirst().getForeignKeyColumnName()).isEqualTo("BLOG_ID");
+    }
+
+    @Test
+    public void testGetTableIndexes() throws SQLException {
+        var table = fetcher.getTable("ARTICLE");
+        assertThat(table.getIndexes()).hasSize(2);
+        assertThat(table.getIndexes().stream().filter(o -> !o.isNonUnique())).hasSize(1);
     }
 
     private Optional<Column> getColumn(String tableName, String columnName) throws SQLException {

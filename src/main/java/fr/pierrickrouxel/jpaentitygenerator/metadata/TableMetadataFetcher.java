@@ -49,12 +49,14 @@ public class TableMetaDataFetcher {
 
             var importedKeys = getImportedKeys(connection, null, tableName);
             var exportedKeys = getExportedKeys(connection, null, tableName);
+            var indexes = getIndexes(connection, null, tableName);
 
             return Table.builder()
                     .name(tableName)
                     .remarks(remarks)
                     .importedKeys(importedKeys)
                     .exportedKeys(exportedKeys)
+                    .indexes(indexes)
                     .columns(columns)
                     .build();
         }
@@ -123,6 +125,22 @@ public class TableMetaDataFetcher {
             }
         }
         return keys;
+    }
+
+    private List<Index> getIndexes(Connection connection, String schemaName, String tableName) throws SQLException {
+        var indexes = new ArrayList<Index>();
+        try (var rs = connection.getMetaData().getIndexInfo(null, schemaName, tableName, false, true)) {
+            while (rs.next()) {
+                var index = Index.builder()
+                        .name(rs.getString("INDEX_NAME"))
+                        .columnName(rs.getString("COLUMN_NAME"))
+                        .nonUnique(rs.getBoolean("NON_UNIQUE"))
+                        .build();
+
+                indexes.add(index);
+            }
+        }
+        return indexes;
     }
 
     private Key getKey(ResultSet rs) throws SQLException {

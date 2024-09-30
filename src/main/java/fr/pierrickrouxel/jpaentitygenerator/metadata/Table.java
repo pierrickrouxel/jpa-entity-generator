@@ -18,4 +18,6 @@ public class Table {
     private List<Key> importedKeys = new ArrayList<>();
     @Builder.Default
     private List<Key> exportedKeys = new ArrayList<>();
+    @Builder.Default
+    private List<Index> indexes = new ArrayList<>();
 }
