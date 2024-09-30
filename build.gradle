@@ -27,6 +27,7 @@ gradlePlugin {
       id = 'fr.pierrickrouxel.jpa-entity-generator'
       displayName = 'Plugin for generate JPA entities from and existant database'
       description = 'A plugin that helps you reverse you databases'
+      tags.addAll('java', 'jpa', 'entity', 'generator')
       implementationClass = 'fr.pierrickrouxel.jpaentitygenerator.gradle.JpaEntityGeneratorPlugin'
     }
   }
