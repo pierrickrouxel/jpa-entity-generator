@@ -12,9 +12,9 @@ import java.util.List;
 @Data
 public class FieldAdditionalCommentRule implements Serializable, FieldMatcher {
 
-    private String className;
-    private List<String> classNames = new ArrayList<>();
-    private String fieldName;
-    private List<String> fieldNames = new ArrayList<>();
-    private String comment;
+  private String className;
+  private List<String> classNames = new ArrayList<>();
+  private String fieldName;
+  private List<String> fieldNames = new ArrayList<>();
+  private String comment;
 }

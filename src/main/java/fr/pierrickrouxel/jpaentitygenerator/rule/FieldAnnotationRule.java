@@ -18,13 +18,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FieldAnnotationRule implements Serializable, FieldMatcher {
 
-    private String className;
-    @Builder.Default
-    private List<String> classNames = new ArrayList<>();
-    private String fieldName;
-    @Builder.Default
-    private List<String> fieldNames = new ArrayList<>();
+  private String className;
+  @Builder.Default
+  private List<String> classNames = new ArrayList<>();
+  private String fieldName;
+  @Builder.Default
+  private List<String> fieldNames = new ArrayList<>();
 
-    @Builder.Default
-    private List<Annotation> annotations = new ArrayList<>();
+  @Builder.Default
+  private List<Annotation> annotations = new ArrayList<>();
 }

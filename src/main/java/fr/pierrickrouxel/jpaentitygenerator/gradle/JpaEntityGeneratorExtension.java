@@ -7,6 +7,6 @@ import lombok.Data;
 
 @Data
 public class JpaEntityGeneratorExtension {
-    private String configPath = "src/main/resources/jpa-entity-generator.yaml";
-    private Map<String, String> environment = new HashMap<>();
+  private String configPath = "src/main/resources/jpa-entity-generator.yaml";
+  private Map<String, String> environment = new HashMap<>();
 }

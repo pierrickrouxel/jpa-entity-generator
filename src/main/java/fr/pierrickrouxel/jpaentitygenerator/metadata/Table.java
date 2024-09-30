@@ -9,15 +9,15 @@ import lombok.Data;
 @Builder
 @Data
 public class Table {
-    private String name;
-    private String schema;
-    private String remarks;
-    @Builder.Default
-    private List<Column> columns = new ArrayList<>();
-    @Builder.Default
-    private List<Key> importedKeys = new ArrayList<>();
-    @Builder.Default
-    private List<Key> exportedKeys = new ArrayList<>();
-    @Builder.Default
-    private List<Index> indexes = new ArrayList<>();
+  private String name;
+  private String schema;
+  private String remarks;
+  @Builder.Default
+  private List<Column> columns = new ArrayList<>();
+  @Builder.Default
+  private List<Key> importedKeys = new ArrayList<>();
+  @Builder.Default
+  private List<Key> exportedKeys = new ArrayList<>();
+  @Builder.Default
+  private List<Index> indexes = new ArrayList<>();
 }

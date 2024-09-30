@@ -10,6 +10,6 @@ import java.io.Serializable;
 @Data
 public class ClassNameRule implements Serializable {
 
-    private String tableName;
-    private String className;
+  private String tableName;
+  private String className;
 }

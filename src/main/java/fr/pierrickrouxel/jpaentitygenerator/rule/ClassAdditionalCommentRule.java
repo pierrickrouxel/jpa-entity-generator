@@ -12,7 +12,7 @@ import java.util.List;
 @Data
 public class ClassAdditionalCommentRule implements Serializable, ClassMatcher {
 
-    private String className;
-    private List<String> classNames = new ArrayList<>();
-    private String comment;
+  private String className;
+  private List<String> classNames = new ArrayList<>();
+  private String comment;
 }

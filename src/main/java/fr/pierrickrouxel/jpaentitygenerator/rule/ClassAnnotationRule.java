@@ -18,10 +18,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ClassAnnotationRule implements Serializable, ClassMatcher {
 
-    private String className;
-    @Builder.Default
-    private List<String> classNames = new ArrayList<>();
-    @Builder.Default
-    private List<Annotation> annotations = new ArrayList<>();
+  private String className;
+  @Builder.Default
+  private List<String> classNames = new ArrayList<>();
+  @Builder.Default
+  private List<Annotation> annotations = new ArrayList<>();
 
 }

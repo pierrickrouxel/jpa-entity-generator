@@ -8,9 +8,9 @@ import org.gradle.api.Project;
  */
 public class JpaEntityGeneratorPlugin implements Plugin<Project> {
 
-    @Override
-    public void apply(Project project) {
-        project.getExtensions().create("jpaEntityGenerator", JpaEntityGeneratorExtension.class);
-        project.getTasks().create("generateEntities", JpaEntityGeneratorTask.class);
-    }
+  @Override
+  public void apply(Project project) {
+    project.getExtensions().create("jpaEntityGenerator", JpaEntityGeneratorExtension.class);
+    project.getTasks().create("generateEntities", JpaEntityGeneratorTask.class);
+  }
 }

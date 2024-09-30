@@ -4,7 +4,7 @@
 ![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pierrickrouxel/jpa-entity-generator/build.yaml)
 
 This is a Java library which generates Lombok-wired JPA entity source code.
-The project provides Gradle plugin.
+The project provides a Gradle plugin.
 
 ## Compatibility
 

@@ -18,11 +18,11 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class FieldTypeRule implements Serializable, FieldMatcher {
 
-    private String className;
-    @Builder.Default
-    private List<String> classNames = new ArrayList<>();
-    private String fieldName;
-    @Builder.Default
-    private List<String> fieldNames = new ArrayList<>();
-    private String typeName;
+  private String className;
+  @Builder.Default
+  private List<String> classNames = new ArrayList<>();
+  private String fieldName;
+  @Builder.Default
+  private List<String> fieldNames = new ArrayList<>();
+  private String typeName;
 }

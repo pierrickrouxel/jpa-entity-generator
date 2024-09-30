@@ -6,7 +6,7 @@ import lombok.Data;
 @Builder
 @Data
 public class Index {
-    private String name;
-    private String columnName;
-    private boolean nonUnique;
+  private String name;
+  private String columnName;
+  private boolean nonUnique;
 }

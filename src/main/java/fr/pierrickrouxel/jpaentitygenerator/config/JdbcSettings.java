@@ -13,9 +13,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JdbcSettings implements Serializable {
 
-    private String url;
-    private String username;
-    private String password;
-    private String driverClassName;
-    private String schemaPattern;
+  private String url;
+  private String username;
+  private String password;
+  private String driverClassName;
+  private String schemaPattern;
 }

@@ -13,23 +13,42 @@ import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
  */
 public class NameConverter {
 
-    private NameConverter() {
-    }
+  private NameConverter() {
+  }
 
-    public static String toClassName(String tableName, List<ClassNameRule> rules) {
-        for (var rule : rules) {
-            if (rule.getTableName().equals(tableName)) {
-                return rule.getClassName();
-            }
-        }
-        return CaseUtils.toCamelCase(tableName, true, '_');
+  /**
+   * Get class name from table name.
+   *
+   * @param tableName The table name
+   * @param rules     The class name rules
+   * @return The class name
+   */
+  public static String toClassName(String tableName, List<ClassNameRule> rules) {
+    for (var rule : rules) {
+      if (rule.getTableName().equals(tableName)) {
+        return rule.getClassName();
+      }
     }
+    return CaseUtils.toCamelCase(tableName, true, '_');
+  }
 
-    public static String toFieldName(String tableName) {
-        return CaseUtils.toCamelCase(tableName, false, '_');
-    }
+  /**
+   * Get field name from table name.
+   *
+   * @param tableName The table name
+   * @return The field name
+   */
+  public static String toFieldName(String tableName) {
+    return CaseUtils.toCamelCase(tableName, false, '_');
+  }
 
-    public static String toListFieldName(String tableName) {
-        return toFieldName(English.plural(tableName));
-    }
+  /**
+   * Get list field name from table name.
+   *
+   * @param tableName The table name
+   * @return The list field name
+   */
+  public static String toListFieldName(String tableName) {
+    return toFieldName(English.plural(tableName));
+  }
 }

@@ -18,8 +18,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class Annotation implements Serializable {
 
-    private String className;
-    @Builder.Default
-    private List<AnnotationAttribute> attributes = new ArrayList<>();
+  private String className;
+  @Builder.Default
+  private List<AnnotationAttribute> attributes = new ArrayList<>();
 
 }
