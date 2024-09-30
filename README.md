@@ -3,6 +3,11 @@
 This is a Java library which generates Lombok-wired JPA entity source code.
 The project provides Gradle plugin.
 
+## Compatibility
+
+- Java >= 21
+- jakarta.persistence
+
 ## Getting Started
 
 Configure you gradle project with the following build:
@@ -43,10 +48,10 @@ You can find all values here: [src/test/resources/jpa-entity-generator.yaml]()
 ## Run the gradle task
 
 ```bash
-./gradlew entityGen
+./gradlew generateEntities
 ```
 
-The `entityGen` task generates entity classes for all the existing tables in the database.
+The `generateEntities` task generates entity classes for all the existing tables in the database.
 
 ### Test project
 
