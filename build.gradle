@@ -18,7 +18,10 @@ group = 'fr.pierrickrouxel.jpaentitygenerator'
 version = '1.0.0'
 
 gradlePlugin {
-  vcsUrl = 'https://github.com/pierrickrouxel/jpa-entity-generator'
+
+  website = 'https://github.com/pierrickrouxel/jpa-entity-generator'
+  vcsUrl = 'https://github.com/pierrickrouxel/jpa-entity-generator.git'
+
   plugins {
     jpeEntityGeneratorPlugin {
       id = 'fr.pierrickrouxel.jpa-entity-generator'
