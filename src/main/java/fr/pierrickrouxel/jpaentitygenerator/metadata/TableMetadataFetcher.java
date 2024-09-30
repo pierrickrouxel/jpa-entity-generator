@@ -38,21 +38,21 @@ public class TableMetaDataFetcher {
         return tableNames;
     }
 
-    public Table getTable(String schemaName, String tableName) throws SQLException {
+    public Table getTable(String tableName) throws SQLException {
 
         try (var connection = getConnection()) {
-            var description = getDescription(connection, schemaName, tableName);
+            var remarks = getRemarks(connection, null, tableName);
 
-            var primaryKeyNames = getPrimaryKeyNames(connection, schemaName, tableName);
+            var primaryKeyNames = getPrimaryKeyNames(connection, null, tableName);
 
-            var columns = getColumns(connection, schemaName, tableName, primaryKeyNames);
+            var columns = getColumns(connection, null, tableName, primaryKeyNames);
 
-            var importedKeys = getImportedKeys(connection, schemaName, tableName);
-            var exportedKeys = getExportedKeys(connection, schemaName, tableName);
+            var importedKeys = getImportedKeys(connection, null, tableName);
+            var exportedKeys = getExportedKeys(connection, null, tableName);
 
             return Table.builder()
                     .name(tableName)
-                    .description(description)
+                    .remarks(remarks)
                     .importedKeys(importedKeys)
                     .exportedKeys(exportedKeys)
                     .columns(columns)
@@ -60,7 +60,7 @@ public class TableMetaDataFetcher {
         }
     }
 
-    private String getDescription(Connection connection, String schemaName, String tableName) throws SQLException {
+    private String getRemarks(Connection connection, String schemaName, String tableName) throws SQLException {
         try (var rs = connection.getMetaData().getTables(null, schemaName, tableName, TABLE_TYPES)) {
             if (rs.next()) {
                 return rs.getString("REMARKS");

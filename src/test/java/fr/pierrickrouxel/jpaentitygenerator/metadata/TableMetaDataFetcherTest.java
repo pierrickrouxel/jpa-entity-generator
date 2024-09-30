@@ -15,71 +15,71 @@ public class TableMetaDataFetcherTest {
     private final TableMetaDataFetcher fetcher = new TableMetaDataFetcher(TestDatabase.jdbcSettings);
 
     @BeforeAll
-    public static void setupDatabase() throws Exception {
+    public static void setupDatabase() throws SQLException {
         TestDatabase.init();
     }
 
     @Test
-    public void getTableNamesTest() throws SQLException {
+    public void testGetTableNames() throws SQLException {
         var tableNames = fetcher.getTableNames();
-        assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "ABTEST", "SOMETHING_TMP"));
+        assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP"));
     }
 
     @Test
-    public void getTableTest() throws SQLException {
-        var table = fetcher.getTable("PUBLIC", "ARTICLE");
+    public void testGetTable() throws SQLException {
+        var table = fetcher.getTable("ARTICLE");
         assertThat(table).isNotNull();
     }
 
     @Test
-    public void getTableColumnsTest() throws SQLException {
-        var table = fetcher.getTable("PUBLIC", "ARTICLE");
+    public void testGetTableColumns() throws SQLException {
+        var table = fetcher.getTable("ARTICLE");
         assertThat(table.getColumns().stream().map(o -> o.getName())).containsExactly("ID", "BLOG_ID", "NAME", "TAGS", "CREATED_AT");
     }
 
     @Test
-    public void getTablePrimaryKeyTest() throws SQLException {
+    public void testGetTablePrimaryKey() throws SQLException {
         assertThat(getColumn("ARTICLE", "ID").map(Column::isPrimaryKey)).hasValue(true);
         assertThat(getColumn("ARTICLE", "NAME").map(Column::isPrimaryKey)).hasValue(false);
     }
 
     @Test
-    public void getTableAutoIncrementTest() throws SQLException {
+    public void testGetTableAutoIncrement() throws SQLException {
         assertThat(getColumn("ARTICLE", "ID").map(Column::isAutoIncrement)).hasValue(true);
         assertThat(getColumn("ARTICLE", "NAME").map(Column::isAutoIncrement)).hasValue(false);
     }
 
     @Test
-    public void getTableIsNullableTest() throws SQLException {
+    public void testGetTableIsNullable() throws SQLException {
         assertThat(getColumn("ARTICLE", "ID").map(Column::isNullable)).hasValue(false);
         assertThat(getColumn("ARTICLE", "NAME").map(Column::isNullable)).hasValue(true);
     }
 
     @Test
-    public void getTableColumnSizeTest() throws SQLException {
+    public void testGetTableColumnSize() throws SQLException {
         assertThat(getColumn("ARTICLE", "NAME").map(Column::getColumnSize)).hasValue(30);
     }
 
     @Test
-    public void getTableDecimalDigitsTest() throws SQLException {
+    public void testGetTableDecimalDigits() throws SQLException {
         assertThat(getColumn("TAG", "AVERAGE").map(Column::getColumnSize)).hasValue(9);
         assertThat(getColumn("TAG", "AVERAGE").map(Column::getDecimalDigits)).hasValue(2);
     }
 
     @Test
-    public void getTableRemarksTest() throws SQLException {
+    public void testGetTableRemarks() throws SQLException {
         assertThat(getColumn("ARTICLE", "BLOG_ID").map(Column::getRemarks)).hasValue("database comment for blog_id");
     }
 
     @Test
-    public void getTableTypeTest() throws SQLException {
+    public void testGetTableType() throws SQLException {
         assertThat(getColumn("ARTICLE", "NAME").map(Column::getTypeCode)).hasValue(12);
         assertThat(getColumn("ARTICLE", "NAME").map(Column::getTypeName)).hasValue("CHARACTER VARYING");
     }
 
     @Test
-    public void getTableExportedKeyTest() throws SQLException {
-        var table = fetcher.getTable("PUBLIC", "ARTICLE");
+    public void testGetTableExportedKey() throws SQLException {
+        var table = fetcher.getTable("ARTICLE");
         assertThat(table.getExportedKeys()).hasSize(1);
         assertThat(table.getExportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("ARTICLE");
         assertThat(table.getExportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
@@ -88,8 +88,8 @@ public class TableMetaDataFetcherTest {
     }
 
     @Test
-    public void getTableImportedKeyTest() throws SQLException {
-        var table = fetcher.getTable("PUBLIC", "ARTICLE");
+    public void testGetTableImportedKey() throws SQLException {
+        var table = fetcher.getTable("ARTICLE");
         assertThat(table.getImportedKeys()).hasSize(1);
         assertThat(table.getImportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("BLOG");
         assertThat(table.getImportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
@@ -98,7 +98,7 @@ public class TableMetaDataFetcherTest {
     }
 
     private Optional<Column> getColumn(String tableName, String columnName) throws SQLException {
-        var table = fetcher.getTable("PUBLIC", tableName);
+        var table = fetcher.getTable(tableName);
         return table.getColumns().stream().filter(o -> o.getName().equals(columnName)).findFirst();
     }
 }

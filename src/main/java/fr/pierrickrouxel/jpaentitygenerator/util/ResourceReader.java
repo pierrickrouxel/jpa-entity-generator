@@ -14,11 +14,11 @@ public class ResourceReader {
     }
 
     public static InputStream getResourceAsStream(String path) throws IOException {
-        InputStream classPathResource = ResourceReader.class.getClassLoader().getResourceAsStream(path);
+        var classPathResource = ResourceReader.class.getClassLoader().getResourceAsStream(path);
         if (classPathResource != null) {
             return classPathResource;
         }
-        InputStream fileResource = new FileInputStream(new File(path));
+        var fileResource = new FileInputStream(new File(path));
         return fileResource;
     }
 

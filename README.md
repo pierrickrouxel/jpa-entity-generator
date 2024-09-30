@@ -1,10 +1,11 @@
 # jpa-entity-generator
 
-This is a Java library which generates Lombok-wired JPA entity source code. The project provides Gradle plugin and Maven plugin.
+This is a Java library which generates Lombok-wired JPA entity source code.
+The project provides Gradle plugin.
 
 ## Getting Started
 
-### build.gradle
+Configure you gradle project with the following build:
 
 ```groovy
 buildscript {
@@ -27,23 +28,25 @@ jpaEntityGenerator {
 }
 ```
 
-### src/main/resources/jpa-entity-generator.yaml
+Add a configuration file for your generation:
 
 ```yaml
 jdbcSettings:
-  url: "jdbc:h2:file:./build/db/test"
+  url: "jdbc:h2:file:mem:"
   driverClassName: "org.h2.Driver"
 
 packageName: "com.example.entity"
 ```
 
-### entityGen task
+You can find all values here: [src/test/resources/jpa-entity-generator.yaml]()
+
+## Run the gradle task
 
 ```bash
-./gradlew entityGen compileJava
+./gradlew entityGen
 ```
 
-`entityGen` task generates entity classes for all the existing tables in the database.
+The `entityGen` task generates entity classes for all the existing tables in the database.
 
 ### Test project
 

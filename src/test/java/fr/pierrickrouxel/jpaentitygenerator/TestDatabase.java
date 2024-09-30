@@ -1,6 +1,5 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
-import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 
@@ -13,8 +12,8 @@ public class TestDatabase {
             .schemaPattern("PUBLIC")
             .build();
 
-    public static void init() throws SQLException, ClassNotFoundException {
-        try (Connection conn = DriverManager.getConnection(jdbcSettings.getUrl())) {
+    public static void init() throws SQLException {
+        try (var conn = DriverManager.getConnection(jdbcSettings.getUrl())) {
             conn.prepareStatement("CREATE TABLE IF NOT EXISTS blog (" +
                     "id INTEGER PRIMARY KEY AUTO_INCREMENT NOT NULL, " +
                     "name VARCHAR(30), " +
@@ -39,11 +38,6 @@ public class TestDatabase {
                     "article_id INTEGER NOT NULL COMMENT 'database comment for article_id' REFERENCES ARTICLE(id), " +
                     "tag_id INTEGER NOT NULL COMMENT 'database comment for blog_id' REFERENCES TAG(id), " +
                     "created_at TIMESTAMP NOT NULL" +
-                    ")").execute();
-            conn.prepareStatement("CREATE TABLE IF NOT EXISTS abtest (" +
-                    "identifier VARCHAR(50) PRIMARY KEY NOT NULL, " +
-                    "expiration_timestamp INTEGER NOT NULL, " +
-                    "config TEXT" +
                     ")").execute();
             conn.prepareStatement("CREATE TABLE IF NOT EXISTS something_tmp (" +
                     "identifier VARCHAR(50) PRIMARY KEY NOT NULL, " +

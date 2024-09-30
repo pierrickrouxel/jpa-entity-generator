@@ -1,20 +1,15 @@
 package fr.pierrickrouxel.jpaentitygenerator.config;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.io.Reader;
 import java.io.Serializable;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import org.yaml.snakeyaml.Yaml;
 
-import fr.pierrickrouxel.jpaentitygenerator.rule.AdditionalCodeRule;
-import fr.pierrickrouxel.jpaentitygenerator.rule.Annotation;
 import fr.pierrickrouxel.jpaentitygenerator.rule.ClassAdditionalCommentRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.ClassAnnotationRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
@@ -22,52 +17,27 @@ import fr.pierrickrouxel.jpaentitygenerator.rule.FieldAdditionalCommentRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.FieldAnnotationRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.FieldDefaultValueRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.FieldTypeRule;
-import fr.pierrickrouxel.jpaentitygenerator.rule.ImportRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.InterfaceRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.TableExclusionRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.TableScanRule;
 import fr.pierrickrouxel.jpaentitygenerator.util.ResourceReader;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Code generator's configuration.
  */
 @Data
-public class CodeGeneratorConfig implements Serializable {
-
-    // ----------
-    // NOTE: Explicitly having NoArgsConstructor/AllArgsConstructor is necessary as as a workaround to enable using @Builder
-    // see also: https://github.com/rzwitserloot/lombok/issues/816
-    public static final List<ClassAnnotationRule> CLASS_ANNOTATIONS_NECESSARY_FOR_LOMBOK_BUILDER = Arrays.asList(
-            ClassAnnotationRule.createGlobal(Annotation.fromClassName("lombok.NoArgsConstructor")),
-            ClassAnnotationRule.createGlobal(Annotation.fromClassName("lombok.AllArgsConstructor"))
-    );
-
-    public static final List<ImportRule> IMPORTS_NECESSARY_FOR_LOMBOK_BUILDER = Arrays.asList(
-            ImportRule.createGlobal("lombok.NoArgsConstructor"),
-            ImportRule.createGlobal("lombok.AllArgsConstructor")
-    );
-
-    // ----------
-    // Preset
-
-    // NOTE: @Table(name = "${tableName}") needs tableName of target table.
-    private static final List<ClassAnnotationRule> PRESET_CLASS_ANNOTATIONS = Arrays.asList(
-            ClassAnnotationRule.createGlobal(Annotation.fromClassName("lombok.Data"))
-    );
-
-    private static final List<ImportRule> PRESET_JAKARTA_IMPORTS = Arrays.asList(
-            ImportRule.createGlobal("java.sql.*"),
-            ImportRule.createGlobal("jakarta.persistence.*"),
-            ImportRule.createGlobal("lombok.Data")
-    );
-
-    public CodeGeneratorConfig() {
-    }
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
+public class EntityGeneratorConfig implements Serializable {
 
     public void loadEnvVariables(Map<String, String> environment) {
         // JDBC settings
-        JdbcSettings settings = getJdbcSettings();
+        var settings = getJdbcSettings();
         if (hasEnvVariables(settings.getUrl())) {
             settings.setUrl(replaceEnvVariables(settings.getUrl(), environment));
         }
@@ -87,79 +57,68 @@ public class CodeGeneratorConfig implements Serializable {
     }
 
     static String replaceEnvVariables(String value, Map<String, String> environment) {
-        Map<String, String> envMap = new HashMap<>(environment);
+        var envMap = new HashMap<String, String>(environment);
         envMap.putAll(System.getenv());
-        String text = value;
+        var text = value;
 
         for (Map.Entry<String, String> entry : envMap.entrySet()) {
-            String k = entry.getKey();
-            String v = entry.getValue();
+            var k = entry.getKey();
+            var v = entry.getValue();
             text = text.replaceAll("\\$\\{" + k + "}", v);
         }
         return text;
     }
 
-    public void setUpPresetRules() {
-        getClassAnnotationRules().addAll(0, PRESET_CLASS_ANNOTATIONS);
-            getImportRules().addAll(0, PRESET_JAKARTA_IMPORTS);
-
-        if (autoPreparationForLombokBuilderEnabled) {
-            getClassAnnotationRules().addAll(CLASS_ANNOTATIONS_NECESSARY_FOR_LOMBOK_BUILDER);
-            getImportRules().addAll(IMPORTS_NECESSARY_FOR_LOMBOK_BUILDER);
-        }
-    }
-
     private JdbcSettings jdbcSettings;
 
-    private List<String> tableNames = new ArrayList<>();
-    private String tableScanMode = "All"; // possible values: All, RuleBased
-
+    @Builder.Default
     private List<TableScanRule> tableScanRules = new ArrayList<>();
+    @Builder.Default
     private List<TableExclusionRule> tableExclusionRules = new ArrayList<>();
 
+    @Builder.Default
     // @GeneratedValue(strategy = GenerationType.IDENTITY)
     // Possible values: TABLE, SEQUENCE, IDENTITY, AUTO
     // If you don't need to specify the `strategy`, set null value.
     private String generatedValueStrategy = "IDENTITY";
 
+    @Builder.Default
     private boolean generateRelationships = false;
-    private boolean generateRelationshipsInsertable = false;
-    private boolean generateRelationshipsUpdatable = false;
 
+    @Builder.Default
     private String outputDirectory = "src/main/java";
-    private String packageName = "fr.pierrickrouxel.db";
-    private boolean usePrimitiveForNonNullField;
+    @Builder.Default
+    private String packageName = "fr.example";
 
-    // NOTE: Explicitly having NoArgsConstructor/AllArgsConstructor is necessary as as a workaround to enable using @Builder
-    // see also: https://github.com/rzwitserloot/lombok/issues/816
-    private boolean autoPreparationForLombokBuilderEnabled;
-
-    private List<ImportRule> importRules = new ArrayList<>();
-
+    @Builder.Default
     private List<ClassNameRule> classNameRules = new ArrayList<>();
+    @Builder.Default
     private List<ClassAnnotationRule> classAnnotationRules = new ArrayList<>();
+    @Builder.Default
     private List<InterfaceRule> interfaceRules = new ArrayList<>();
+    @Builder.Default
     private List<ClassAdditionalCommentRule> classAdditionalCommentRules = new ArrayList<>();
 
+    @Builder.Default
     private List<FieldTypeRule> fieldTypeRules = new ArrayList<>();
+    @Builder.Default
     private List<FieldAnnotationRule> fieldAnnotationRules = new ArrayList<>();
+    @Builder.Default
     private List<FieldDefaultValueRule> fieldDefaultValueRules = new ArrayList<>();
+    @Builder.Default
     private List<FieldAdditionalCommentRule> fieldAdditionalCommentRules = new ArrayList<>();
-
-    private List<AdditionalCodeRule> additionalCodeRules = new ArrayList<>();
 
     private static final Yaml YAML = new Yaml();
 
-    public static CodeGeneratorConfig load(String path) throws IOException {
+    public static EntityGeneratorConfig load(String path) throws IOException {
         return load(path, new HashMap<>());
     }
 
-    public static CodeGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
-        try (InputStream is = ResourceReader.getResourceAsStream(path)) {
-            try (Reader reader = new InputStreamReader(is)) {
-                CodeGeneratorConfig config = YAML.loadAs(reader, CodeGeneratorConfig.class);
+    public static EntityGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
+        try (var is = ResourceReader.getResourceAsStream(path)) {
+            try (var reader = new InputStreamReader(is)) {
+                var config = YAML.loadAs(reader, EntityGeneratorConfig.class);
                 config.loadEnvVariables(environment);
-                config.setUpPresetRules();
                 return config;
             }
         }

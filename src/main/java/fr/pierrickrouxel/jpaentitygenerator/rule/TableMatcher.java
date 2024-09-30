@@ -1,7 +1,5 @@
 package fr.pierrickrouxel.jpaentitygenerator.rule;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 
 /**
@@ -25,26 +23,26 @@ public interface TableMatcher {
      * @return true if the rule matches.
      */
     default boolean matches(String tableName) {
-        if (StringUtils.isEmpty(getTableName()) && (getTableNames() == null || getTableNames().size() == 0)) {
+        if ((getTableName() == null || getTableName().isEmpty()) && (getTableNames() == null || getTableNames().isEmpty())) {
             // global settings
             return true;
         }
 
-        String singleTarget = getTableName();
+        var singleTarget = getTableName();
         if (singleTarget != null) {
-            boolean matched = singleTarget.equals(tableName) || tableName.matches(singleTarget);
+            var matched = singleTarget.equals(tableName) || tableName.matches(singleTarget);
             if (matched) {
                 return true;
             }
         }
 
-        List<String> targets = getTableNames();
+        var targets = getTableNames();
         if (targets != null && targets.isEmpty() == false) {
-            boolean matched = targets.contains(tableName);
+            var matched = targets.contains(tableName);
             if (matched) {
                 return true;
             } else {
-                for (String target : targets) {
+                for (var target : targets) {
                     if (tableName.matches(target)) {
                         return true;
                     }

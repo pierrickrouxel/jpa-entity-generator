@@ -1,8 +1,8 @@
 package fr.pierrickrouxel.jpaentitygenerator.rule;
 
-import lombok.Data;
-
 import java.io.Serializable;
+
+import lombok.Data;
 
 /**
  * Represents an attribute of a Java annotation.
@@ -12,5 +12,4 @@ public class AnnotationAttribute implements Serializable {
 
     private String name;
     private String value;
-    private String code;
 }

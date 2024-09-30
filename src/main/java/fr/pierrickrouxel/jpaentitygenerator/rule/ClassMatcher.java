@@ -1,7 +1,5 @@
 package fr.pierrickrouxel.jpaentitygenerator.rule;
 
-import org.apache.commons.lang3.StringUtils;
-
 import java.util.List;
 
 /**
@@ -25,22 +23,22 @@ public interface ClassMatcher {
      * @return true if the rule matches.
      */
     default boolean matches(String className) {
-        if (StringUtils.isEmpty(getClassName()) && (getClassNames() == null || getClassNames().size() == 0)) {
+        if ((getClassName() == null || getClassName().isEmpty()) && (getClassNames() == null || getClassNames().isEmpty())) {
             // global settings
             return true;
         }
 
-        String singleTarget = getClassName();
+        var singleTarget = getClassName();
         if (singleTarget != null) {
-            boolean matched = singleTarget.equals(className) || className.matches(singleTarget);
+            var matched = singleTarget.equals(className) || className.matches(singleTarget);
             if (matched) {
                 return true;
             }
         }
 
-        List<String> targets = getClassNames();
+        var targets = getClassNames();
         if (targets != null && targets.isEmpty() == false) {
-            boolean matched = targets.contains(className);
+            var matched = targets.contains(className);
             if (matched) {
                 return true;
             } else {

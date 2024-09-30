@@ -5,15 +5,8 @@ import java.util.Map;
 
 import lombok.Data;
 
-/**
- * <pre>
- * entityGen {
- *   configPath = "src/main/resources/entityGenConfig.yml"
- * }
- * </pre>
- */
 @Data
 public class EntityGenExtension {
-    private String configPath = "entityGenConfig.yml";
+    private String configPath = "src/main/resources/jpa-entity-generator.yaml";
     private Map<String, String> environment = new HashMap<>();
 }

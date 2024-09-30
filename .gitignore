@@ -16,6 +16,3 @@ out
 output/
 target/
 .java-version
-
-# The test generation output
-src/test/java/com/example/

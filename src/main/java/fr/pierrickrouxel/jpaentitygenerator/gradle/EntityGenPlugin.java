@@ -10,7 +10,7 @@ public class EntityGenPlugin implements Plugin<Project> {
 
     @Override
     public void apply(Project project) {
-        project.getExtensions().create("entityGen", EntityGenExtension.class);
-        project.getTasks().create("entityGen", EntityGenTask.class);
+        project.getExtensions().create("jpaEntityGenerator", EntityGenExtension.class);
+        project.getTasks().create("generateEntities", EntityGenTask.class);
     }
 }

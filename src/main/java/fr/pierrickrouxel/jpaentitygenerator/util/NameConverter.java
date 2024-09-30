@@ -1,10 +1,10 @@
 package fr.pierrickrouxel.jpaentitygenerator.util;
 
-import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
-
 import java.util.List;
 
 import org.apache.commons.text.CaseUtils;
+
+import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
 
 /**
  * Utility about name conversions between table/column names and class/field
@@ -16,7 +16,7 @@ public class NameConverter {
     }
 
     public static String toClassName(String tableName, List<ClassNameRule> rules) {
-        for (ClassNameRule rule : rules) {
+        for (var rule : rules) {
             if (rule.getTableName().equals(tableName)) {
                 return rule.getClassName();
             }

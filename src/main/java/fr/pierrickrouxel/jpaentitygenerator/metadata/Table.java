@@ -11,7 +11,7 @@ import lombok.Data;
 public class Table {
     private String name;
     private String schema;
-    private String description;
+    private String remarks;
     @Builder.Default
     private List<Column> columns = new ArrayList<>();
     @Builder.Default

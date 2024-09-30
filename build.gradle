@@ -5,7 +5,7 @@ plugins {
 }
 
 repositories {
-    mavenCentral()
+  mavenCentral()
 }
 
 java {
@@ -15,28 +15,25 @@ java {
 }
 
 gradlePlugin {
-    plugins {
-        jpeEntityGeneratorPlugin {
-            id = 'fr.pierrickrouxel.jpa-entity-generator'
-            implementationClass = 'fr.pierrickrouxel.jpaentitygenerator.gradle.EntityGenPlugin'
-        }
+  plugins {
+    jpeEntityGeneratorPlugin {
+      id = 'fr.pierrickrouxel.jpa-entity-generator'
+      implementationClass = 'fr.pierrickrouxel.jpaentitygenerator.gradle.EntityGenPlugin'
     }
+  }
 }
 
 dependencies {
   implementation 'org.apache.commons:commons-text:1.12.0'
-  implementation 'org.freemarker:freemarker:2.3.28'
+  implementation 'com.squareup:javapoet:1.13.0'
   implementation 'org.yaml:snakeyaml:1.23'
   implementation 'org.slf4j:slf4j-api:1.7.25'
-
-  runtimeOnly 'jakarta.annotation:jakarta.annotation-api:2.1.1'
 
   testImplementation 'com.h2database:h2:2.3.232'
   testImplementation 'jakarta.persistence:jakarta.persistence-api:3.0.0'
 
   testImplementation 'org.junit.jupiter:junit-jupiter-api:5.11.1'
   testImplementation 'org.assertj:assertj-core:3.26.3'
-  testRuntimeOnly 'jakarta.annotation:jakarta.annotation-api:2.1.1'
   testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.11.1'
   testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.11.1'
 }
