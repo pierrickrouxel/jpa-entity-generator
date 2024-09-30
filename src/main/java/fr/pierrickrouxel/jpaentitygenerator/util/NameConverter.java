@@ -3,6 +3,7 @@ package fr.pierrickrouxel.jpaentitygenerator.util;
 import java.util.List;
 
 import org.apache.commons.text.CaseUtils;
+import org.atteo.evo.inflector.English;
 
 import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
 
@@ -26,5 +27,9 @@ public class NameConverter {
 
     public static String toFieldName(String tableName) {
         return CaseUtils.toCamelCase(tableName, false, '_');
+    }
+
+    public static String toListFieldName(String tableName) {
+        return toFieldName(English.plural(tableName));
     }
 }

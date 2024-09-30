@@ -156,7 +156,7 @@ public class EntityGenerator {
     }
 
     public static FieldSpec getManyToOneField(Column column, Key importedKey, List<ClassNameRule> classNameRules) {
-        var fieldTypeName = NameConverter.toClassName(importedKey.getForeignKeyTableName(), classNameRules);
+        var fieldTypeName = NameConverter.toClassName(importedKey.getPrimaryKeyTableName(), classNameRules);
         var fieldName = NameConverter.toFieldName(importedKey.getPrimaryKeyTableName());
 
         var joinColumnAnnotation = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumn"))
@@ -167,6 +167,27 @@ public class EntityGenerator {
         return FieldSpec.builder(ClassName.bestGuess(fieldTypeName), fieldName, Modifier.PRIVATE)
                 .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.ManyToOne")).build())
                 .addAnnotation(joinColumnAnnotation)
+                .build();
+    }
+
+    public static List<FieldSpec> getOneToManyFields(List<Key> exportedKeys, List<ClassNameRule> classNameRules) {
+        return exportedKeys.stream().map(o -> getOneToManyField(o, classNameRules)).collect(Collectors.toList());
+    }
+
+    public static FieldSpec getOneToManyField(Key exportedKey, List<ClassNameRule> classNameRules) {
+        var fieldTypeName = NameConverter.toClassName(exportedKey.getForeignKeyTableName(), classNameRules);
+        var fieldName = NameConverter.toListFieldName(exportedKey.getForeignKeyTableName());
+
+        var annotation = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.OneToMany"))
+                .addMember("mappedBy", "$S", NameConverter.toFieldName(exportedKey.getPrimaryKeyTableName()))
+                .build();
+
+        var fieldType = ClassName.bestGuess(fieldTypeName);
+        var list = ClassName.get("java.util", "List");
+        var listOfType = ParameterizedTypeName.get(list, fieldType);
+
+        return FieldSpec.builder(listOfType, fieldName, Modifier.PRIVATE)
+                .addAnnotation(annotation)
                 .build();
     }
 
@@ -260,7 +281,7 @@ public class EntityGenerator {
     }
 
     private static boolean checkColumnUnique(Column column, List<Index> indexes) {
-      return indexes.stream()
-        .anyMatch(o -> o.getColumnName().equals(column.getName()) && !o.isNonUnique());
+        return indexes.stream()
+                .anyMatch(o -> o.getColumnName().equals(column.getName()) && !o.isNonUnique());
     }
 }

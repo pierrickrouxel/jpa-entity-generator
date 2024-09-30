@@ -106,16 +106,26 @@ public class EntityGeneratorTest {
     public void testGetFieldWithRelationship() {
         var column = Column.builder().name("BLOG_ID").typeCode(4).build();
         var importedKeys = List.of(Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID").foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build());
-        var defaultValueRules = List.of(FieldDefaultValueRule.builder().className("Article").fieldName("code").defaultValue("1").build());
-        var config = EntityGeneratorConfig.builder().fieldDefaultValueRules(defaultValueRules).build();
 
-        assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), importedKeys, config).toString()).isEqualTo("""
+        assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), importedKeys, new EntityGeneratorConfig()).toString()).isEqualTo("""
         @jakarta.persistence.ManyToOne
         @jakarta.persistence.JoinColumn(
             name = "BLOG_ID",
             nullable = false
         )
-        private Article blog;
+        private Blog blog;
+        """);
+    }
+
+    @Test
+    public void testGetOneToMayRelationship() {
+        var exportedKey = Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID").foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build();
+
+        assertThat(EntityGenerator.getOneToManyField(exportedKey, Collections.emptyList()).toString()).isEqualTo("""
+        @jakarta.persistence.OneToMany(
+            mappedBy = "blog"
+        )
+        private java.util.List<Article> articles;
         """);
     }
 
