@@ -1,5 +1,8 @@
 # jpa-entity-generator
 
+![GitHub Release](https://img.shields.io/github/v/release/pierrickrouxel/jpa-entity-generator)
+![GitHub Actions Workflow Status](https://img.shields.io/github/actions/workflow/status/pierrickrouxel/jpa-entity-generator/build.yaml)
+
 This is a Java library which generates Lombok-wired JPA entity source code.
 The project provides Gradle plugin.
 
