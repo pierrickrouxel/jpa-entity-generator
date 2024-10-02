@@ -25,7 +25,7 @@ public class TypeConverter {
       case Types.BOOLEAN -> "Boolean";
       case Types.CHAR -> "String";
       case Types.CLOB -> "Clob";
-      case Types.DATE -> "Date";
+      case Types.DATE -> "java.sql.Date";
       case Types.DECIMAL -> "java.math.BigDecimal";
       case Types.DOUBLE -> "Double";
       case Types.FLOAT -> "Float";
