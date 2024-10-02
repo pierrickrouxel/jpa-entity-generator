@@ -151,9 +151,6 @@ public class EntityGenerator {
     var annotationSpecs = new ArrayList<AnnotationSpec>();
 
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.Data")).build());
-    annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.Builder")).build());
-    annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.NoArgsConstructor")).build());
-    annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.AllArgsConstructor")).build());
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Entity")).build());
     annotationSpecs.add(getTableAnnotation(tableName));
 
