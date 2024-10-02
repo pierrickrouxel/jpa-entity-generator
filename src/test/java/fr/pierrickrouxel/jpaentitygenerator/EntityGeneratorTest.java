@@ -88,7 +88,7 @@ public class EntityGeneratorTest {
     var nameColumn = Column.builder().name("NAME").typeCode(4).build();
 
     assertThat(EntityGenerator
-        .getField(codeColumn, "Article", indexes, Collections.emptyList(), new EntityGeneratorConfig()).toString())
+        .getField(codeColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
         .startsWith("""
             @jakarta.persistence.Column(
                 name = "CODE",
@@ -97,7 +97,7 @@ public class EntityGeneratorTest {
             )
             """);
     assertThat(EntityGenerator
-        .getField(nameColumn, "Article", indexes, Collections.emptyList(), new EntityGeneratorConfig()).toString())
+        .getField(nameColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
         .startsWith("""
             @jakarta.persistence.Column(
                 name = "NAME",
@@ -114,25 +114,48 @@ public class EntityGeneratorTest {
         .of(FieldDefaultValueRule.builder().className("Article").fieldName("code").defaultValue("1").build());
     var config = EntityGeneratorConfig.builder().fieldDefaultValueRules(defaultValueRules).build();
 
-    assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), Collections.emptyList(),
-        config).initializer.toString()).isEqualTo("1");
+    assertThat(EntityGenerator.getField(column, "Article", Collections.emptyList(), config).initializer.toString()).isEqualTo("1");
   }
 
   @Test
   public void testGetFieldWithRelationship() {
-    var column = Column.builder().name("BLOG_ID").typeCode(4).build();
+    var columns = List.of(Column.builder().name("BLOG_ID").typeCode(4).build());
     var importedKeys = List.of(Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID")
         .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build());
 
     assertThat(EntityGenerator
-        .getField(column, "Article", Collections.emptyList(), importedKeys, new EntityGeneratorConfig()).toString())
+        .getManyToOneField("BLOG", importedKeys, columns, Collections.emptyList()).toString())
         .isEqualTo("""
             @jakarta.persistence.ManyToOne
             @jakarta.persistence.JoinColumn(
                 name = "BLOG_ID",
+                referencedColumnName = "ID",
                 nullable = false
             )
             private Blog blog;
+            """);
+  }
+
+  @Test
+  public void testGetFieldWithCompositeRelationship() {
+    var columns = List.of(Column.builder().name("PHONE").typeCode(4).build(),
+    Column.builder().name("EMAIL").typeCode(4).build());
+    var importedKeys = List.of(
+      Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("PHONE")
+        .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_PHONE").build(),
+        Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("EMAIL")
+          .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
+        );
+
+    assertThat(EntityGenerator
+        .getManyToOneField("USER", importedKeys, columns, Collections.emptyList()).toString())
+        .isEqualTo("""
+            @jakarta.persistence.ManyToOne
+            @jakarta.persistence.JoinColumns({
+                @jakarta.persistence.JoinColumn(name = "USER_PHONE", referencedColumnName = "PHONE", nullable = false),
+                @jakarta.persistence.JoinColumn(name = "USER_EMAIL", referencedColumnName = "EMAIL", nullable = false)
+            })
+            private User user;
             """);
   }
 

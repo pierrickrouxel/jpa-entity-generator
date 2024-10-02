@@ -55,12 +55,18 @@ public class EntityGenerator {
     var className = NameConverter.toClassName(table.getName(), config.getClassNameRules());
 
     var fields = table.getColumns().stream()
-        .map(o -> getField(o, className, table.getIndexes(), table.getImportedKeys(), config))
+        .filter(o -> !checkColumnImportedKey(o, table.getImportedKeys()))
+        .map(o -> getField(o, className, table.getIndexes(), config))
         .collect(Collectors.toList());
+
+    var manyToOneFields = getManyToOneFields(table.getImportedKeys(), table.getColumns(), config.getClassNameRules());
+    var oneToManyFields = getOneToManyFields(table.getExportedKeys(), config.getClassNameRules());
 
     var classSpecBuilder = TypeSpec.classBuilder(className)
         .addAnnotations(getClassAnnotations(table.getName(), className, config.getClassAnnotationRules()))
-        .addFields(fields);
+        .addFields(fields)
+        .addFields(manyToOneFields)
+        .addFields(oneToManyFields);
 
     var javaDoc = getClassJavaDoc(table.getRemarks(), className, config.getClassAdditionalCommentRules());
     if (javaDoc != null) {
@@ -171,26 +177,17 @@ public class EntityGenerator {
   /**
    * Generates field from column.
    *
-   * @param column       The column
-   * @param className    The class name
-   * @param indexes      The list of indexes
-   * @param importedKeys The list of imported keys
-   * @param config       The config
+   * @param column    The column
+   * @param className The class name
+   * @param indexes   The list of indexes
+   * @param config    The config
    * @return The field
    */
-  public static FieldSpec getField(Column column, String className, List<Index> indexes, List<Key> importedKeys,
+  public static FieldSpec getField(Column column, String className, List<Index> indexes,
       EntityGeneratorConfig config) {
     var fieldName = NameConverter.toFieldName(column.getName());
 
     var isUnique = checkColumnUnique(column, indexes);
-
-    var columnImportedKey = importedKeys.stream()
-        .filter(o -> o.getForeignKeyColumnName().equals(column.getName()))
-        .findAny()
-        .orElse(null);
-    if (columnImportedKey != null) {
-      return getManyToOneField(column, columnImportedKey, config.getClassNameRules());
-    }
 
     var typeName = getFieldType(fieldName, column.getTypeCode(), className, config.getFieldTypeRules());
 
@@ -213,26 +210,58 @@ public class EntityGenerator {
     return fieldSpecBuilder.build();
   }
 
+  private static List<FieldSpec> getManyToOneFields(List<Key> importedKeys, List<Column> columns,
+      List<ClassNameRule> classNameRules) {
+    var keyMap = importedKeys.stream().collect(Collectors.groupingBy(o -> o.getPrimaryKeyTableName()));
+    return keyMap.entrySet().stream()
+        .map((o) -> getManyToOneField(o.getKey(), o.getValue(), columns, classNameRules))
+        .collect(Collectors.toList());
+  }
+
   /**
    * Generates @ManyToOne annotated field.
    *
-   * @param column         The colum
-   * @param importedKey    The imported key
+   * @param tableName      The table name
+   * @param importedKeys   The list of imported keys
+   * @param columns        The list of columns
    * @param classNameRules The class name rules
    * @return The field
    */
-  public static FieldSpec getManyToOneField(Column column, Key importedKey, List<ClassNameRule> classNameRules) {
-    var fieldTypeName = NameConverter.toClassName(importedKey.getPrimaryKeyTableName(), classNameRules);
-    var fieldName = NameConverter.toFieldName(importedKey.getPrimaryKeyTableName());
+  public static FieldSpec getManyToOneField(String tableName, List<Key> importedKeys, List<Column> columns,
+      List<ClassNameRule> classNameRules) {
+    var fieldTypeName = NameConverter.toClassName(tableName, classNameRules);
+    var fieldName = NameConverter.toFieldName(tableName);
 
-    var joinColumnAnnotation = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumn"))
+    var fieldBuilder = FieldSpec.builder(ClassName.bestGuess(fieldTypeName), fieldName, Modifier.PRIVATE)
+        .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.ManyToOne")).build());
+
+    var joinColumnAnnotations = importedKeys.stream().map(o -> getJoinColumnAnnotation(o, columns))
+        .collect(Collectors.toList());
+
+    if (joinColumnAnnotations.size() > 1) {
+      var joinColumnsBuilder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumns"));
+      joinColumnAnnotations.forEach(o -> joinColumnsBuilder.addMember("value", o.toString()));
+      fieldBuilder.addAnnotation(joinColumnsBuilder.build());
+    } else {
+      fieldBuilder.addAnnotation(joinColumnAnnotations.get(0));
+    }
+
+    return fieldBuilder.build();
+  }
+
+  /**
+   * Generates @JoinColumn annotation.
+   *
+   * @param importedKey The imported key
+   * @return The annotation
+   */
+  public static AnnotationSpec getJoinColumnAnnotation(Key importedKey, List<Column> columns) {
+    var isNullable = checkImportedKeyNullable(importedKey, columns);
+
+    return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumn"))
         .addMember("name", "$S", importedKey.getForeignKeyColumnName())
-        .addMember("nullable", "$L", column.isNullable())
-        .build();
-
-    return FieldSpec.builder(ClassName.bestGuess(fieldTypeName), fieldName, Modifier.PRIVATE)
-        .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.ManyToOne")).build())
-        .addAnnotation(joinColumnAnnotation)
+        .addMember("referencedColumnName", "$S", importedKey.getPrimaryKeyColumnName())
+        .addMember("nullable", "$L", isNullable)
         .build();
   }
 
@@ -419,7 +448,7 @@ public class EntityGenerator {
   }
 
   /**
-   * Check if column is unique from indexes.
+   * Check if the column is unique from indexes.
    *
    * @param column  The column
    * @param indexes The list of indexes
@@ -428,5 +457,32 @@ public class EntityGenerator {
   private static boolean checkColumnUnique(Column column, List<Index> indexes) {
     return indexes.stream()
         .anyMatch(o -> column.getName().equals(o.getColumnName()) && !o.isNonUnique());
+  }
+
+  /**
+   * Check if the imported key is unique from columns.
+   *
+   * @param key     The imported key
+   * @param columns The list of indexes
+   * @return `true` if imported key is nullable
+   */
+  private static boolean checkImportedKeyNullable(Key importedKey, List<Column> columns) {
+    return columns.stream()
+        .filter(o -> o.getName().equals(importedKey.getForeignKeyColumnName()))
+        .findAny()
+        .map(Column::isNullable)
+        .orElse(false);
+  }
+
+  /**
+   * Check if column has an imported key.
+   *
+   * @param column       The column
+   * @param importedKeys The list of imported keys
+   * @return `true` if the column has an imported key
+   */
+  private static boolean checkColumnImportedKey(Column column, List<Key> importedKeys) {
+    return importedKeys.stream()
+        .anyMatch(o -> o.getForeignKeyColumnName().equals(column.getName()));
   }
 }
