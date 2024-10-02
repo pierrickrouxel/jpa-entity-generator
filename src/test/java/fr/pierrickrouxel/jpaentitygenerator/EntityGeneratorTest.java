@@ -118,7 +118,7 @@ public class EntityGeneratorTest {
   }
 
   @Test
-  public void testGetFieldWithRelationship() {
+  public void testGetManyToOneField() {
     var columns = List.of(Column.builder().name("BLOG_ID").typeCode(4).build());
     var importedKeys = List.of(Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID")
         .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build());
@@ -137,7 +137,7 @@ public class EntityGeneratorTest {
   }
 
   @Test
-  public void testGetFieldWithCompositeRelationship() {
+  public void testGetManyToOneFieldWithCompositeRelationship() {
     var columns = List.of(Column.builder().name("PHONE").typeCode(4).build(),
     Column.builder().name("EMAIL").typeCode(4).build());
     var importedKeys = List.of(
@@ -160,7 +160,19 @@ public class EntityGeneratorTest {
   }
 
   @Test
-  public void testGetOneToMayRelationship() {
+  public void testGetOneToManyFieldsWithCompositeRelationship() {
+    var exportedKeys = List.of(
+      Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("PHONE")
+        .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build(),
+        Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("EMAIL")
+          .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
+    );
+
+    assertThat(EntityGenerator.getOneToManyFields(exportedKeys, Collections.emptyList())).hasSize(1);
+  }
+
+  @Test
+  public void testGetOneToManyField() {
     var exportedKey = Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID")
         .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build();
 

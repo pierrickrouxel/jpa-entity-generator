@@ -1,13 +1,16 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
+
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 
 import javax.lang.model.element.Modifier;
@@ -273,7 +276,13 @@ public class EntityGenerator {
    * @return The list of fields
    */
   public static List<FieldSpec> getOneToManyFields(List<Key> exportedKeys, List<ClassNameRule> classNameRules) {
-    return exportedKeys.stream().map(o -> getOneToManyField(o, classNameRules)).collect(Collectors.toList());
+    var seen = new ConcurrentHashMap<Object, Boolean>();
+    Predicate<Key> distinctByKey = (o) -> seen.putIfAbsent(o.getForeignKeyTableName(), Boolean.TRUE) == null;
+
+    return exportedKeys.stream()
+        .filter(distinctByKey)
+        .map(o -> getOneToManyField(o, classNameRules))
+        .collect(Collectors.toList());
   }
 
   /**
