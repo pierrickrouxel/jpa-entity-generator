@@ -60,13 +60,19 @@ public class EntityGeneratorTest {
   }
 
   @Test
+  public void testGetTableAnnotation() {
+    var annotation = EntityGenerator.getTableAnnotation("table_name");
+    assertThat(annotation.toString()).isEqualTo("@jakarta.persistence.Table(name = \"table_name\")");
+  }
+
+  @Test
   public void testGetClassAnnotationRules() {
     var articleAnnotations = List.of(Annotation.builder().className("ArticleAnnotation").build());
     var blogAnnotations = List.of(Annotation.builder().className("BlogAnnotation").build());
     var classAnnotationRules = List.of(
         ClassAnnotationRule.builder().className("Article").annotations(articleAnnotations).build(),
         ClassAnnotationRule.builder().className("Blog").annotations(blogAnnotations).build());
-    var classAnnotationSpecs = EntityGenerator.getClassAnnotations("Article", "ARTICLE", classAnnotationRules);
+    var classAnnotationSpecs = EntityGenerator.getClassAnnotations("ARTICLE", "Article", classAnnotationRules);
     assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).contains("@ArticleAnnotation");
     assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).doesNotContain("@BlogAnnotation");
   }

@@ -131,12 +131,12 @@ public class EntityGenerator {
   /**
    * Generates annotation for entity class.
    *
-   * @param className            The class name
    * @param tableName            The table name
+   * @param className            The class name
    * @param classAnnotationRules The annotation rules
    * @return The annotations
    */
-  public static List<AnnotationSpec> getClassAnnotations(String className, String tableName,
+  public static List<AnnotationSpec> getClassAnnotations(String tableName, String className,
       List<ClassAnnotationRule> classAnnotationRules) {
     var annotationSpecs = new ArrayList<AnnotationSpec>();
 
@@ -145,8 +145,7 @@ public class EntityGenerator {
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.NoArgsConstructor")).build());
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.AllArgsConstructor")).build());
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Entity")).build());
-    annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
-        .addMember("name", "$S", tableName).build());
+    annotationSpecs.add(getTableAnnotation(tableName));
 
     classAnnotationRules.stream()
         .filter(o -> o.matches(className))
@@ -155,6 +154,18 @@ public class EntityGenerator {
         .forEach(annotationSpecs::add);
 
     return annotationSpecs;
+  }
+
+  /**
+   * Generates @Table annotation.
+   *
+   * @param tableName The table name
+   * @return The annotation
+   */
+  public static AnnotationSpec getTableAnnotation(String tableName) {
+    return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
+        .addMember("name", "$S", tableName)
+        .build();
   }
 
   /**

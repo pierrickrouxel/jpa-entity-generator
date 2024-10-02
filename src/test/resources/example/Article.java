@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @Entity
 @Table(
-    name = "Article"
+    name = "ARTICLE"
 )
 class Article {
   @Column(
