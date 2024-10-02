@@ -75,7 +75,9 @@ public class EntityGeneratorTest {
   public void testGetFieldUnique() {
     var indexes = List.of(
         Index.builder().name("CODE_CONSTRAINT").columnName("CODE").nonUnique(false).build(),
-        Index.builder().name("NAME_CONSTRAINT").columnName("NAME").nonUnique(true).build());
+        Index.builder().name("NAME_CONSTRAINT").columnName("NAME").nonUnique(true).build(),
+        // Some index names be null (see MSSQL tableIndexClustered)
+        Index.builder().nonUnique(true).build());
     var codeColumn = Column.builder().name("CODE").typeCode(4).build();
     var nameColumn = Column.builder().name("NAME").typeCode(4).build();
 

@@ -416,6 +416,6 @@ public class EntityGenerator {
    */
   private static boolean checkColumnUnique(Column column, List<Index> indexes) {
     return indexes.stream()
-        .anyMatch(o -> o.getColumnName().equals(column.getName()) && !o.isNonUnique());
+        .anyMatch(o -> column.getName().equals(o.getColumnName()) && !o.isNonUnique());
   }
 }
