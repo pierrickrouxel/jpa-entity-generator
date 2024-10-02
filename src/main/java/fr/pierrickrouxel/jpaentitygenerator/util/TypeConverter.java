@@ -33,13 +33,13 @@ public class TypeConverter {
       case Types.LONGVARCHAR -> "String";
       case Types.NUMERIC -> "java.math.BigDecimal";
       case Types.REAL -> "Float";
-      case Types.REF -> "Ref";
+      case Types.REF -> "java.sql.Ref";
       case Types.SMALLINT -> "Short";
       case Types.STRUCT -> "Struct";
       case Types.TIME -> "Time";
       case Types.TIME_WITH_TIMEZONE -> "Time";
-      case Types.TIMESTAMP -> "Timestamp";
-      case Types.TIMESTAMP_WITH_TIMEZONE -> "Timestamp";
+      case Types.TIMESTAMP -> "java.sql.Timestamp";
+      case Types.TIMESTAMP_WITH_TIMEZONE -> "java.sql.Timestamp";
       case Types.TINYINT -> "Byte";
       case Types.VARCHAR -> "String";
       default -> "String";
