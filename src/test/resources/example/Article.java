@@ -19,7 +19,7 @@ import lombok.NoArgsConstructor;
 @Table(
     name = "ARTICLE"
 )
-class Article {
+public class Article {
   @Column(
       name = "ID",
       nullable = false,
