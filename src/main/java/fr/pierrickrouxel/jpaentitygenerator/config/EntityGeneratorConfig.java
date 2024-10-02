@@ -2,6 +2,8 @@ package fr.pierrickrouxel.jpaentitygenerator.config;
 
 import java.io.IOException;
 import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -128,7 +130,8 @@ public class EntityGeneratorConfig implements Serializable {
    */
   public static EntityGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
     var yaml = new Yaml();
-    try (var inputStream = EntityGeneratorConfig.class.getResourceAsStream(path)) {
+
+    try (var inputStream = Files.newInputStream(Paths.get(path))) {
       var config = yaml.loadAs(inputStream, EntityGeneratorConfig.class);
       config.loadEnvVariables(environment);
       return config;
