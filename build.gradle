@@ -14,7 +14,7 @@ java {
   }
 }
 
-group = 'fr.pierrickrouxel.jpaentitygenerator'
+group = 'fr.pierrickrouxel'
 version = '1.0.0'
 
 gradlePlugin {
