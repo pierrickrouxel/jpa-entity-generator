@@ -66,6 +66,7 @@ public class EntityGenerator {
     var oneToManyFields = getOneToManyFields(table.getExportedKeys(), config.getClassNameRules());
 
     var classSpecBuilder = TypeSpec.classBuilder(className)
+        .addModifiers(Modifier.PUBLIC)
         .addAnnotations(getClassAnnotations(table.getName(), className, config.getClassAnnotationRules()))
         .addFields(fields)
         .addFields(manyToOneFields)
