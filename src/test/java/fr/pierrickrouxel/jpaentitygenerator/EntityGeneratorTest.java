@@ -222,7 +222,7 @@ public class EntityGeneratorTest {
   public void testGetColumnAnnotationBigDecimal() {
     var column = Column.builder().name("AVERAGE").typeCode(2).columnSize(9).decimalDigits(2).build();
     assertThat(EntityGenerator.getColumnAnnotation(column, false).toString()).isEqualTo(
-        "@jakarta.persistence.Column(name = \"AVERAGE\", nullable = false, unique = false, precision = \"9\", scale = \"2\")");
+        "@jakarta.persistence.Column(name = \"AVERAGE\", nullable = false, unique = false, precision = 9, scale = 2)");
   }
 
   private String getExample(String entityName) throws IOException, URISyntaxException {

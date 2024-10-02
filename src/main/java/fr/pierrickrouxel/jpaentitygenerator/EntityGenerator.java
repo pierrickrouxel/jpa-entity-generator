@@ -403,8 +403,8 @@ public class EntityGenerator {
     }
 
     if ("java.math.BigDecimal".equals(javaType)) {
-      columnAnnotationBuilder.addMember("precision", "$S", column.getColumnSize());
-      columnAnnotationBuilder.addMember("scale", "$S", column.getDecimalDigits());
+      columnAnnotationBuilder.addMember("precision", "$L", column.getColumnSize());
+      columnAnnotationBuilder.addMember("scale", "$L", column.getDecimalDigits());
     }
 
     return columnAnnotationBuilder.build();
