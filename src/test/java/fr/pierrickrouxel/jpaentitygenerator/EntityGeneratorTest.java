@@ -120,11 +120,11 @@ public class EntityGeneratorTest {
   @Test
   public void testGetManyToOneField() {
     var columns = List.of(Column.builder().name("BLOG_ID").typeCode(4).build());
-    var importedKeys = List.of(Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID")
-        .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build());
+    var importedKey = Key.builder().primaryKeyTableName("BLOG").primaryKeyColumnName("ID")
+        .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build();
 
     assertThat(EntityGenerator
-        .getManyToOneField("BLOG", importedKeys, columns, Collections.emptyList()).toString())
+        .getManyToOneField("BLOG", importedKey, columns, Collections.emptyList()).toString())
         .isEqualTo("""
             @jakarta.persistence.ManyToOne
             @jakarta.persistence.JoinColumn(
@@ -147,16 +147,7 @@ public class EntityGeneratorTest {
           .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
         );
 
-    assertThat(EntityGenerator
-        .getManyToOneField("USER", importedKeys, columns, Collections.emptyList()).toString())
-        .isEqualTo("""
-            @jakarta.persistence.ManyToOne
-            @jakarta.persistence.JoinColumns({
-                @jakarta.persistence.JoinColumn(name = "USER_PHONE", referencedColumnName = "PHONE", nullable = false),
-                @jakarta.persistence.JoinColumn(name = "USER_EMAIL", referencedColumnName = "EMAIL", nullable = false)
-            })
-            private User user;
-            """);
+    assertThat(EntityGenerator.getManyToOneFields(importedKeys, columns, Collections.emptyList())).isEmpty();
   }
 
   @Test
@@ -168,7 +159,7 @@ public class EntityGeneratorTest {
           .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
     );
 
-    assertThat(EntityGenerator.getOneToManyFields(exportedKeys, Collections.emptyList())).hasSize(1);
+    assertThat(EntityGenerator.getOneToManyFields(exportedKeys, Collections.emptyList())).isEmpty();
   }
 
   @Test

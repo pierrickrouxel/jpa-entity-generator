@@ -44,6 +44,21 @@ public class TestDatabase {
           "expiration_timestamp INTEGER NOT NULL, " +
           "config TEXT" +
           ")").execute();
+      conn.prepareStatement("ALTER TABLE something_tmp ADD CONSTRAINT uk_something_tmp " +
+          "UNIQUE (" +
+          "identifier, expiration_timestamp" +
+          ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS something2_tmp (" +
+          "identifier VARCHAR(50) PRIMARY KEY NOT NULL, " +
+          "expiration_timestamp INTEGER NOT NULL, " +
+          "config TEXT" +
+          ")").execute();
+      conn.prepareStatement("ALTER TABLE something2_tmp ADD CONSTRAINT fk_something2_tmp " +
+          "FOREIGN KEY (" +
+          "identifier, expiration_timestamp" +
+          ") REFERENCES something_tmp (" +
+          "identifier, expiration_timestamp" +
+          ")").execute();
     }
 
   }

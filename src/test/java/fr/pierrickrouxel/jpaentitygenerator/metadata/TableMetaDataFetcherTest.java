@@ -22,7 +22,7 @@ public class TableMetaDataFetcherTest {
   @Test
   public void testGetTableNames() throws SQLException {
     var tableNames = fetcher.getTableNames();
-    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP"));
+    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP", "SOMETHING2_TMP"));
   }
 
   @Test
@@ -96,6 +96,24 @@ public class TableMetaDataFetcherTest {
     assertThat(table.getImportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
     assertThat(table.getImportedKeys().getFirst().getForeignKeyTableName()).isEqualTo("ARTICLE");
     assertThat(table.getImportedKeys().getFirst().getForeignKeyColumnName()).isEqualTo("BLOG_ID");
+  }
+
+  @Test
+  public void testGetTableExportedKeysComposite() throws SQLException {
+    var table = fetcher.getTable("SOMETHING_TMP");
+    assertThat(table.getExportedKeys()).hasSize(2);
+    assertThat(table.getExportedKeys()).allMatch(o -> o.getPrimaryKeyTableName().equals("SOMETHING_TMP"));
+    assertThat(table.getExportedKeys()).anyMatch(o -> o.getPrimaryKeyColumnName().equals("IDENTIFIER"));
+    assertThat(table.getExportedKeys()).anyMatch(o -> o.getPrimaryKeyColumnName().equals("EXPIRATION_TIMESTAMP"));
+  }
+
+  @Test
+  public void testGetTableImportedKeysComposite() throws SQLException {
+    var table = fetcher.getTable("SOMETHING2_TMP");
+    assertThat(table.getImportedKeys()).hasSize(2);
+    assertThat(table.getImportedKeys()).allMatch(o -> o.getPrimaryKeyTableName().equals("SOMETHING_TMP"));
+    assertThat(table.getImportedKeys()).anyMatch(o -> o.getPrimaryKeyColumnName().equals("IDENTIFIER"));
+    assertThat(table.getImportedKeys()).anyMatch(o -> o.getPrimaryKeyColumnName().equals("EXPIRATION_TIMESTAMP"));
   }
 
   @Test

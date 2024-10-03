@@ -8,8 +8,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -57,11 +55,7 @@ public class EntityGenerator {
   public static String getEntity(Table table, EntityGeneratorConfig config) {
     var className = NameConverter.toClassName(table.getName(), config.getClassNameRules());
 
-    var fields = table.getColumns().stream()
-        .filter(o -> !checkColumnImportedKey(o, table.getImportedKeys()))
-        .map(o -> getField(o, className, table.getIndexes(), config))
-        .collect(Collectors.toList());
-
+    var fields = getFields(table.getColumns(), className, table.getIndexes(), table.getImportedKeys(), config);
     var manyToOneFields = getManyToOneFields(table.getImportedKeys(), table.getColumns(), config.getClassNameRules());
     var oneToManyFields = getOneToManyFields(table.getExportedKeys(), config.getClassNameRules());
 
@@ -85,12 +79,30 @@ public class EntityGenerator {
     var javaFile = JavaFile.builder(config.getPackageName(), classSpec)
         .build();
 
-    if (classSpec.fieldSpecs.stream()
-        .noneMatch(o -> o.annotations.stream().anyMatch(o2 -> o2.type.toString().equals("jakarta.persistence.Id")))) {
+    if (fields.stream()
+        .noneMatch(o -> o.annotations.stream().anyMatch(o2 -> o2.toString().equals("@jakarta.persistence.Id")))) {
       throw new IllegalStateException("Entity " + className + " has no @Id field");
     }
 
     return javaFile.toString();
+  }
+
+  /**
+   * Generates fields.
+   *
+   * @param columns      The list of columns
+   * @param className    The class name
+   * @param indexes      The list of indexes
+   * @param importedKeys The list of imported keys
+   * @param config       The config
+   * @return The list of fields
+   */
+  public static List<FieldSpec> getFields(List<Column> columns, String className, List<Index> indexes,
+      List<Key> importedKeys, EntityGeneratorConfig config) {
+    return columns.stream()
+        .filter(o -> !checkColumnImportedKey(o, importedKeys))
+        .map(o -> getField(o, className, indexes, config))
+        .collect(Collectors.toList());
   }
 
   /**
@@ -211,11 +223,13 @@ public class EntityGenerator {
     return fieldSpecBuilder.build();
   }
 
-  private static List<FieldSpec> getManyToOneFields(List<Key> importedKeys, List<Column> columns,
+  public static List<FieldSpec> getManyToOneFields(List<Key> importedKeys, List<Column> columns,
       List<ClassNameRule> classNameRules) {
     var keyMap = importedKeys.stream().collect(Collectors.groupingBy(o -> o.getPrimaryKeyTableName()));
     return keyMap.entrySet().stream()
-        .map((o) -> getManyToOneField(o.getKey(), o.getValue(), columns, classNameRules))
+        // Remove composite keys
+        .filter(o -> o.getValue().size() == 1)
+        .map(o -> getManyToOneField(o.getKey(), o.getValue().get(0), columns, classNameRules))
         .collect(Collectors.toList());
   }
 
@@ -223,31 +237,20 @@ public class EntityGenerator {
    * Generates @ManyToOne annotated field.
    *
    * @param tableName      The table name
-   * @param importedKeys   The list of imported keys
+   * @param importedKey    The imported key
    * @param columns        The list of columns
    * @param classNameRules The class name rules
    * @return The field
    */
-  public static FieldSpec getManyToOneField(String tableName, List<Key> importedKeys, List<Column> columns,
+  public static FieldSpec getManyToOneField(String tableName, Key importedKey, List<Column> columns,
       List<ClassNameRule> classNameRules) {
     var fieldTypeName = NameConverter.toClassName(tableName, classNameRules);
     var fieldName = NameConverter.toFieldName(tableName);
 
-    var fieldBuilder = FieldSpec.builder(ClassName.bestGuess(fieldTypeName), fieldName, Modifier.PRIVATE)
-        .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.ManyToOne")).build());
-
-    var joinColumnAnnotations = importedKeys.stream().map(o -> getJoinColumnAnnotation(o, columns))
-        .collect(Collectors.toList());
-
-    if (joinColumnAnnotations.size() > 1) {
-      var joinColumnsBuilder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumns"));
-      joinColumnAnnotations.forEach(o -> joinColumnsBuilder.addMember("value", o.toString()));
-      fieldBuilder.addAnnotation(joinColumnsBuilder.build());
-    } else {
-      fieldBuilder.addAnnotation(joinColumnAnnotations.get(0));
-    }
-
-    return fieldBuilder.build();
+    return FieldSpec.builder(ClassName.bestGuess(fieldTypeName), fieldName, Modifier.PRIVATE)
+        .addAnnotation(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.ManyToOne")).build())
+        .addAnnotation(getJoinColumnAnnotation(importedKey, columns))
+        .build();
   }
 
   /**
@@ -274,12 +277,11 @@ public class EntityGenerator {
    * @return The list of fields
    */
   public static List<FieldSpec> getOneToManyFields(List<Key> exportedKeys, List<ClassNameRule> classNameRules) {
-    var seen = new ConcurrentHashMap<Object, Boolean>();
-    Predicate<Key> distinctByKey = (o) -> seen.putIfAbsent(o.getForeignKeyTableName(), Boolean.TRUE) == null;
-
-    return exportedKeys.stream()
-        .filter(distinctByKey)
-        .map(o -> getOneToManyField(o, classNameRules))
+    var keyMap = exportedKeys.stream().collect(Collectors.groupingBy(o -> o.getForeignKeyTableName()));
+    return keyMap.entrySet().stream()
+        // Remove composite keys
+        .filter(o -> o.getValue().size() == 1)
+        .map(o -> getOneToManyField(o.getValue().get(0), classNameRules))
         .collect(Collectors.toList());
   }
 
