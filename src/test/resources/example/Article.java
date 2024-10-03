@@ -11,11 +11,11 @@ import lombok.Data;
 @Data
 @Entity
 @Table(
-    name = "ARTICLE"
+    name = "\"ARTICLE\""
 )
 public class Article {
   @Column(
-      name = "ID",
+      name = "\"ID\"",
       nullable = false,
       unique = false
   )
@@ -26,7 +26,7 @@ public class Article {
   private Integer id;
 
   @Column(
-      name = "NAME",
+      name = "\"NAME\"",
       nullable = false,
       unique = false,
       length = 50

@@ -62,7 +62,7 @@ public class EntityGeneratorTest {
   @Test
   public void testGetTableAnnotation() {
     var annotation = EntityGenerator.getTableAnnotation("table_name");
-    assertThat(annotation.toString()).isEqualTo("@jakarta.persistence.Table(name = \"table_name\")");
+    assertThat(annotation.toString()).isEqualTo("@jakarta.persistence.Table(name = \"\\\"table_name\\\"\")");
   }
 
   @Test
@@ -91,7 +91,7 @@ public class EntityGeneratorTest {
         .getField(codeColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
         .startsWith("""
             @jakarta.persistence.Column(
-                name = "CODE",
+                name = "\\\"CODE\\\"",
                 nullable = false,
                 unique = true
             )
@@ -100,7 +100,7 @@ public class EntityGeneratorTest {
         .getField(nameColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
         .startsWith("""
             @jakarta.persistence.Column(
-                name = "NAME",
+                name = "\\\"NAME\\\"",
                 nullable = false,
                 unique = false
             )
@@ -128,8 +128,8 @@ public class EntityGeneratorTest {
         .isEqualTo("""
             @jakarta.persistence.ManyToOne
             @jakarta.persistence.JoinColumn(
-                name = "BLOG_ID",
-                referencedColumnName = "ID",
+                name = "\\\"BLOG_ID\\\"",
+                referencedColumnName = "\\\"ID\\\"",
                 nullable = false
             )
             private Blog blog;
@@ -211,21 +211,21 @@ public class EntityGeneratorTest {
   public void testGetColumnAnnotationString() {
     var column = Column.builder().name("NAME").typeCode(12).columnSize(50).build();
     assertThat(EntityGenerator.getColumnAnnotation(column, false).toString())
-        .isEqualTo("@jakarta.persistence.Column(name = \"NAME\", nullable = false, unique = false, length = 50)");
+        .isEqualTo("@jakarta.persistence.Column(name = \"\\\"NAME\\\"\", nullable = false, unique = false, length = 50)");
   }
 
   @Test
   public void testGetColumnAnnotationInteger() {
     var column = Column.builder().name("CODE").typeCode(4).build();
     assertThat(EntityGenerator.getColumnAnnotation(column, false).toString())
-        .isEqualTo("@jakarta.persistence.Column(name = \"CODE\", nullable = false, unique = false)");
+        .isEqualTo("@jakarta.persistence.Column(name = \"\\\"CODE\\\"\", nullable = false, unique = false)");
   }
 
   @Test
   public void testGetColumnAnnotationBigDecimal() {
     var column = Column.builder().name("AVERAGE").typeCode(2).columnSize(9).decimalDigits(2).build();
     assertThat(EntityGenerator.getColumnAnnotation(column, false).toString()).isEqualTo(
-        "@jakarta.persistence.Column(name = \"AVERAGE\", nullable = false, unique = false, precision = 9, scale = 2)");
+        "@jakarta.persistence.Column(name = \"\\\"AVERAGE\\\"\", nullable = false, unique = false, precision = 9, scale = 2)");
   }
 
   private String getExample(String entityName) throws IOException, URISyntaxException {

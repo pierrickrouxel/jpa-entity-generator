@@ -183,7 +183,7 @@ public class EntityGenerator {
    */
   public static AnnotationSpec getTableAnnotation(String tableName) {
     return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
-        .addMember("name", "$S", tableName)
+        .addMember("name", "\"\\\"$L\\\"\"", tableName)
         .build();
   }
 
@@ -263,8 +263,8 @@ public class EntityGenerator {
     var isNullable = checkImportedKeyNullable(importedKey, columns);
 
     return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumn"))
-        .addMember("name", "$S", importedKey.getForeignKeyColumnName())
-        .addMember("referencedColumnName", "$S", importedKey.getPrimaryKeyColumnName())
+        .addMember("name", "\"\\\"$L\\\"\"", importedKey.getForeignKeyColumnName())
+        .addMember("referencedColumnName", "\"\\\"$L\\\"\"", importedKey.getPrimaryKeyColumnName())
         .addMember("nullable", "$L", isNullable)
         .build();
   }
@@ -401,7 +401,7 @@ public class EntityGenerator {
    */
   public static AnnotationSpec getColumnAnnotation(Column column, boolean isUnique) {
     var columnAnnotationBuilder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Column"))
-        .addMember("name", "$S", column.getName())
+        .addMember("name", "\"\\\"$L\\\"\"", column.getName())
         .addMember("nullable", "$L", column.isNullable())
         .addMember("unique", "$L", isUnique);
 
