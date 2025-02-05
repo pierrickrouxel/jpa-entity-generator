@@ -23,7 +23,7 @@ gradlePlugin {
   vcsUrl = 'https://github.com/pierrickrouxel/jpa-entity-generator.git'
 
   plugins {
-    jpeEntityGeneratorPlugin {
+    jpaEntityGeneratorPlugin {
       id = 'fr.pierrickrouxel.jpa-entity-generator'
       displayName = 'Plugin for generate JPA entities from and existant database'
       description = 'A plugin that helps you reverse you databases'
