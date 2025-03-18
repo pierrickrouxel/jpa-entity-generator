@@ -6,6 +6,12 @@ jdbcSettings:
   schemaPattern: PUBLIC
   driverClassName: "org.h2.Driver"
 
+# If you need to include yaml files, set the following setting as needed
+#   - string value: the relative path from jpa-entity-generator root directory.
+includes:
+  - '/author.yaml'
+
+
 # ---------------------------------------------------------
 # *** Basic/global configuration ***
 
