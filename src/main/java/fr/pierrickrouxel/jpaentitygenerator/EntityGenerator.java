@@ -1,18 +1,5 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
-import static java.util.stream.Collectors.joining;
-import static java.util.stream.Collectors.toList;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
-
-import javax.lang.model.element.Modifier;
-
 import com.squareup.javapoet.AnnotationSpec;
 import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.FieldSpec;
@@ -20,7 +7,6 @@ import com.squareup.javapoet.JavaFile;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 import com.squareup.javapoet.TypeSpec;
-
 import fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Column;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Index;
@@ -37,6 +23,19 @@ import fr.pierrickrouxel.jpaentitygenerator.rule.InterfaceRule;
 import fr.pierrickrouxel.jpaentitygenerator.util.NameConverter;
 import fr.pierrickrouxel.jpaentitygenerator.util.TypeConverter;
 import lombok.extern.slf4j.Slf4j;
+
+import javax.lang.model.element.Modifier;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
+
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 
 /**
  * Lombok-wired JPA entity code generator.
@@ -61,7 +60,7 @@ public class EntityGenerator {
 
     var classSpecBuilder = TypeSpec.classBuilder(className)
         .addModifiers(Modifier.PUBLIC)
-        .addAnnotations(getClassAnnotations(table.getName(), className, config.getClassAnnotationRules()))
+        .addAnnotations(getClassAnnotations(table.getName(), table.getIndexes(), className, config.getClassAnnotationRules()))
         .addFields(fields)
         .addFields(manyToOneFields)
         .addFields(oneToManyFields);
@@ -154,17 +153,18 @@ public class EntityGenerator {
    * Generates annotation for entity class.
    *
    * @param tableName            The table name
+   * @param indexes              The index list
    * @param className            The class name
    * @param classAnnotationRules The annotation rules
    * @return The annotations
    */
-  public static List<AnnotationSpec> getClassAnnotations(String tableName, String className,
-      List<ClassAnnotationRule> classAnnotationRules) {
+  public static List<AnnotationSpec> getClassAnnotations(String tableName, List<Index> indexes, String className,
+                                                         List<ClassAnnotationRule> classAnnotationRules) {
     var annotationSpecs = new ArrayList<AnnotationSpec>();
 
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("lombok.Data")).build());
     annotationSpecs.add(AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Entity")).build());
-    annotationSpecs.add(getTableAnnotation(tableName));
+    annotationSpecs.add(getTableAnnotation(tableName, indexes));
 
     classAnnotationRules.stream()
         .filter(o -> o.matches(className))
@@ -179,12 +179,26 @@ public class EntityGenerator {
    * Generates @Table annotation.
    *
    * @param tableName The table name
+   * @param indexes
    * @return The annotation
    */
-  public static AnnotationSpec getTableAnnotation(String tableName) {
-    return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
-        .addMember("name", "\"\\\"$L\\\"\"", tableName)
-        .build();
+  public static AnnotationSpec getTableAnnotation(String tableName, List<Index> indexes) {
+    final var constraints = indexes.stream().filter(i -> i.getName() != null)
+      .collect(Collectors.groupingBy(Index::getName, toList()));
+
+    final var builder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
+      .addMember("name", "\"\\\"$L\\\"\"", tableName);
+    constraints.entrySet().stream()
+      .filter(entry -> entry.getValue().size() > 1 && !entry.getValue().getFirst().isNonUnique())
+      .forEach(entry -> {
+        final AnnotationSpec.Builder annotation = AnnotationSpec.builder(ClassName.get("jakarta.persistence", "UniqueConstraint"))
+          .addMember("name", "$S", entry.getKey());
+        entry.getValue()
+          .forEach(i -> annotation.addMember("columnNames", "$S", "\"" + NameConverter.toFieldName(i.getColumnName()) + "\""));
+
+        builder.addMember("uniqueConstraints", "$L",annotation.build());
+      });
+    return builder.build();
   }
 
   /**
@@ -465,7 +479,12 @@ public class EntityGenerator {
    */
   private static boolean checkColumnUnique(Column column, List<Index> indexes) {
     return indexes.stream()
-        .anyMatch(o -> column.getName().equals(o.getColumnName()) && !o.isNonUnique());
+        .anyMatch(o -> {
+          final var isNonUnique = Objects.equals(column.getName(), o.getColumnName()) && !o.isNonUnique();
+          if (!isNonUnique) return false;
+          // constraint on a single column
+          return indexes.stream().filter(index -> Objects.equals(index.getName(), o.getName())).count() == 1;
+        });
   }
 
   /**

@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,10 +59,43 @@ public class EntityGeneratorTest {
     assertThat(entity).contains("ArticleInterface<ArticleGeneric>");
     assertThat(entity).doesNotContain("BlogInterface");
   }
+  @Test
+  public void testGetClassUniqueConstaint() {
+    var table = Table.builder().name("ARTICLE_TAG").build();
+    table.getColumns().add(Column.builder().name("ID").typeCode(4).autoIncrement(true).primaryKey(true)
+        .build());
+    table.getColumns().add(Column.builder().name("ARTICLE_ID").typeCode(4).build());
+    table.getColumns().add(Column.builder().name("TAG_ID").typeCode(4).build());
+    table.getColumns().add(Column.builder().name("PLV_ID").typeCode(4).build());
+
+    table.getIndexes().add(Index.builder().name("U_ART_TAG").columnName("ARTICLE_ID").nonUnique(false).build());
+    table.getIndexes().add(Index.builder().name("U_ART_TAG").columnName("TAG_ID").nonUnique(false).build());
+    table.getIndexes().add(Index.builder().name("U_ART_PLV").columnName("ARTICLE_ID").nonUnique(false).build());
+    table.getIndexes().add(Index.builder().name("U_ART_PLV").columnName("PLV_ID").nonUnique(false).build());
+    var entity = EntityGenerator.getEntity(table,
+        EntityGeneratorConfig.builder().build());
+    assertThat(entity).contains("@Table(\n" +
+      "    name = \"\\\"ARTICLE_TAG\\\"\",\n" +
+      "    uniqueConstraints = {\n" +
+      "        @UniqueConstraint(name = \"U_ART_PLV\", columnNames = {\"\\\"articleId\\\"\", \"\\\"plvId\\\"\"}),\n" +
+      "        @UniqueConstraint(name = \"U_ART_TAG\", columnNames = {\"\\\"articleId\\\"\", \"\\\"tagId\\\"\"})\n" +
+      "    }\n" +
+      ")");
+    assertThat(entity).contains("@Column(\n" +
+      "      name = \"\\\"ARTICLE_ID\\\"\",\n" +
+      "      nullable = false,\n" +
+      "      unique = false\n" +
+      "  )");
+    assertThat(entity).contains("@Column(\n" +
+      "      name = \"\\\"TAG_ID\\\"\",\n" +
+      "      nullable = false,\n" +
+      "      unique = false\n" +
+      "  )");
+  }
 
   @Test
   public void testGetTableAnnotation() {
-    var annotation = EntityGenerator.getTableAnnotation("table_name");
+    var annotation = EntityGenerator.getTableAnnotation("table_name", new ArrayList<>());
     assertThat(annotation.toString()).isEqualTo("@jakarta.persistence.Table(name = \"\\\"table_name\\\"\")");
   }
 
@@ -72,13 +106,43 @@ public class EntityGeneratorTest {
     var classAnnotationRules = List.of(
         ClassAnnotationRule.builder().className("Article").annotations(articleAnnotations).build(),
         ClassAnnotationRule.builder().className("Blog").annotations(blogAnnotations).build());
-    var classAnnotationSpecs = EntityGenerator.getClassAnnotations("ARTICLE", "Article", classAnnotationRules);
+    var classAnnotationSpecs = EntityGenerator.getClassAnnotations("ARTICLE", new ArrayList<>(), "Article", classAnnotationRules);
     assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).contains("@ArticleAnnotation");
     assertThat(classAnnotationSpecs.stream().map(AnnotationSpec::toString)).doesNotContain("@BlogAnnotation");
   }
 
   @Test
   public void testGetFieldUnique() {
+    var indexes = List.of(
+        Index.builder().name("CODE_CONSTRAINT").columnName("CODE").nonUnique(false).build(),
+        Index.builder().name("NAME_CONSTRAINT").columnName("NAME").nonUnique(true).build(),
+        // Some index names be null (see MSSQL tableIndexClustered)
+        Index.builder().nonUnique(true).build());
+    var codeColumn = Column.builder().name("CODE").typeCode(4).build();
+    var nameColumn = Column.builder().name("NAME").typeCode(4).build();
+
+    assertThat(EntityGenerator
+        .getField(codeColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
+        .startsWith("""
+            @jakarta.persistence.Column(
+                name = "\\\"CODE\\\"",
+                nullable = false,
+                unique = true
+            )
+            """);
+    assertThat(EntityGenerator
+        .getField(nameColumn, "Article", indexes, new EntityGeneratorConfig()).toString())
+        .startsWith("""
+            @jakarta.persistence.Column(
+                name = "\\\"NAME\\\"",
+                nullable = false,
+                unique = false
+            )
+            """);
+  }
+
+  @Test
+  public void testGetFieldsUnique() {
     var indexes = List.of(
         Index.builder().name("CODE_CONSTRAINT").columnName("CODE").nonUnique(false).build(),
         Index.builder().name("NAME_CONSTRAINT").columnName("NAME").nonUnique(true).build(),
