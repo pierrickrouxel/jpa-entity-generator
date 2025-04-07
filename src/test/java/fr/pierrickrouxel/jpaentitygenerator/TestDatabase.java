@@ -1,9 +1,9 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
+import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
+
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
 
 public class TestDatabase {
   public final static JdbcSettings jdbcSettings = JdbcSettings.builder()
@@ -59,7 +59,32 @@ public class TestDatabase {
           ") REFERENCES something_tmp (" +
           "identifier, expiration_timestamp" +
           ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_ent (" +
+        "id_vte_ent VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " codede char(2), " +
+        " numvte bigint NULL, " +
+        " numlig int NOT NULL," +
+        " codecl char(30)," +
+        " CONSTRAINT u_vte_ent UNIQUE (codede,numvte)" +
+        ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_lig (" +
+        "id_vte_lig VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " codede char(2), " +
+        " numvte bigint NULL, " +
+        " numlig int NOT NULL," +
+        " price int," +
+        " CONSTRAINT u_vte_lig UNIQUE (codede,numvte,numlig)," +
+        " CONSTRAINT fk_2 FOREIGN KEY (codede,numvte) REFERENCES vte_ent(codede,numvte)" +
+        ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_nom (" +
+        "id_vte_lig VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " codede char(2), " +
+        " numvte bigint NULL, " +
+        " numlig int NOT NULL," +
+        " codear char(30)," +
+        " CONSTRAINT fk_1 FOREIGN KEY (codede,numvte,numlig) REFERENCES vte_lig(codede,numvte,numlig)" +
+        ")").execute();
     }
-
   }
+
 }
