@@ -59,30 +59,29 @@ public class TestDatabase {
           ") REFERENCES something_tmp (" +
           "identifier, expiration_timestamp" +
           ")").execute();
-      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_ent (" +
-        "id_vte_ent VARCHAR(50) PRIMARY KEY NOT NULL, " +
-        " codede char(2), " +
-        " numvte bigint NULL, " +
-        " numlig int NOT NULL," +
-        " codecl char(30)," +
-        " CONSTRAINT u_vte_ent UNIQUE (codede,numvte)" +
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vente (" +
+        " id_vente VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " depot char(2), " +
+        " reference bigint NULL, " +
+        " client char(30)," +
+        " CONSTRAINT u_vente UNIQUE (depot,reference)" +
         ")").execute();
-      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_lig (" +
-        "id_vte_lig VARCHAR(50) PRIMARY KEY NOT NULL, " +
-        " codede char(2), " +
-        " numvte bigint NULL, " +
-        " numlig int NOT NULL," +
-        " price int," +
-        " CONSTRAINT u_vte_lig UNIQUE (codede,numvte,numlig)," +
-        " CONSTRAINT fk_2 FOREIGN KEY (codede,numvte) REFERENCES vte_ent(codede,numvte)" +
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS detail (" +
+        "id_detail VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " depot char(2), " +
+        " reference bigint NULL, " +
+        " position int NOT NULL," +
+        " prix int," +
+        " CONSTRAINT u_detail UNIQUE (depot,reference,position)," +
+        " CONSTRAINT fk_2 FOREIGN KEY (depot,reference) REFERENCES vente(depot,reference)" +
         ")").execute();
-      conn.prepareStatement("CREATE TABLE IF NOT EXISTS vte_nom (" +
-        "id_vte_lig VARCHAR(50) PRIMARY KEY NOT NULL, " +
-        " codede char(2), " +
-        " numvte bigint NULL, " +
-        " numlig int NOT NULL," +
-        " codear char(30)," +
-        " CONSTRAINT fk_1 FOREIGN KEY (codede,numvte,numlig) REFERENCES vte_lig(codede,numvte,numlig)" +
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS detail_information (" +
+        " id_detail VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " depot char(2), " +
+        " reference bigint NULL, " +
+        " position int NOT NULL," +
+        " article char(30)," +
+        " CONSTRAINT fk_1 FOREIGN KEY (depot,reference,position) REFERENCES detail(depot,reference,position)" +
         ")").execute();
     }
   }

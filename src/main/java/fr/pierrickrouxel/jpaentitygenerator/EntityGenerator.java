@@ -247,7 +247,7 @@ public class EntityGenerator {
    * Generates @ManyToOne annotated field.
    *
    * @param tableName      The table name
-   * @param importedKeys   The imported key
+   * @param importedKeys   The imported keys
    * @param columns        The list of columns
    * @param classNameRules The class name rules
    * @return The field
@@ -266,7 +266,7 @@ public class EntityGenerator {
   /**
    * Generates @JoinColumn annotation.
    *
-   * @param importedKeys The imported key
+   * @param importedKeys The imported keys
    * @return The annotation
    */
   public static AnnotationSpec getJoinColumnAnnotation(List<Key> importedKeys, List<Column> columns) {
