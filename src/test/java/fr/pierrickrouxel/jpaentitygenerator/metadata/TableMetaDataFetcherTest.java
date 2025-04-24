@@ -22,7 +22,7 @@ public class TableMetaDataFetcherTest {
   @Test
   public void testGetTableNames() throws SQLException {
     var tableNames = fetcher.getTableNames();
-    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP", "SOMETHING2_TMP","VENTE","DETAIL","DETAIL_INFORMATION"));
+    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP", "SOMETHING2_TMP","SALES","DETAIL","DETAIL_INFORMATION"));
   }
 
   @Test
@@ -89,14 +89,14 @@ public class TableMetaDataFetcherTest {
   }
   @Test
   public void testGetMultiTablesExportedKeys() throws SQLException {
-    var vteEnt = fetcher.getTable("VENTE");
+    var vteEnt = fetcher.getTable("SALES");
     var vteNom = fetcher.getTable("DETAIL_INFORMATION");
     var vteLig = fetcher.getTable("DETAIL");
     assertThat(vteEnt.getImportedKeys()).hasSize(0);
     assertThat(vteEnt.getExportedKeys()).hasSize(2);
 
-    assertThat(vteLig.getImportedKeys()).hasSize(2); // VENTE
-    assertThat(vteLig.getExportedKeys()).hasSize(3); // detail_information
+    assertThat(vteLig.getImportedKeys()).hasSize(2); // SALES
+    assertThat(vteLig.getExportedKeys()).hasSize(3); // DETAIL_INFORMATION
 
     assertThat(vteNom.getImportedKeys()).hasSize(3); // DETAIL
     assertThat(vteNom.getExportedKeys()).hasSize(0);
