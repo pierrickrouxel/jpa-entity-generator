@@ -22,7 +22,7 @@ public class TableMetaDataFetcherTest {
   @Test
   public void testGetTableNames() throws SQLException {
     var tableNames = fetcher.getTableNames();
-    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP", "SOMETHING2_TMP"));
+    assertThat(tableNames).hasSameElementsAs(List.of("BLOG", "ARTICLE", "TAG", "ARTICLE_TAG", "SOMETHING_TMP", "SOMETHING2_TMP","SALES","DETAIL","DETAIL_INFORMATION"));
   }
 
   @Test
@@ -34,7 +34,7 @@ public class TableMetaDataFetcherTest {
   @Test
   public void testGetTableColumns() throws SQLException {
     var table = fetcher.getTable("ARTICLE");
-    assertThat(table.getColumns().stream().map(o -> o.getName())).containsExactly("ID", "BLOG_ID", "NAME", "TAGS",
+    assertThat(table.getColumns().stream().map(Column::getName)).containsExactly("ID", "BLOG_ID", "NAME", "TAGS",
         "CREATED_AT");
   }
 
@@ -86,6 +86,21 @@ public class TableMetaDataFetcherTest {
     assertThat(table.getExportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
     assertThat(table.getExportedKeys().getFirst().getForeignKeyTableName()).isEqualTo("ARTICLE_TAG");
     assertThat(table.getExportedKeys().getFirst().getForeignKeyColumnName()).isEqualTo("ARTICLE_ID");
+  }
+  @Test
+  public void testGetMultiTablesExportedKeys() throws SQLException {
+    var vteEnt = fetcher.getTable("SALES");
+    var vteNom = fetcher.getTable("DETAIL_INFORMATION");
+    var vteLig = fetcher.getTable("DETAIL");
+    assertThat(vteEnt.getImportedKeys()).hasSize(0);
+    assertThat(vteEnt.getExportedKeys()).hasSize(2);
+
+    assertThat(vteLig.getImportedKeys()).hasSize(2); // SALES
+    assertThat(vteLig.getExportedKeys()).hasSize(3); // DETAIL_INFORMATION
+
+    assertThat(vteNom.getImportedKeys()).hasSize(3); // DETAIL
+    assertThat(vteNom.getExportedKeys()).hasSize(0);
+
   }
 
   @Test

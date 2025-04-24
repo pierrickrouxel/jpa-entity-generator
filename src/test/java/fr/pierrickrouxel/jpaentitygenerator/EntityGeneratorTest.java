@@ -1,19 +1,6 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
-import java.io.IOException;
-import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Test;
-
 import com.squareup.javapoet.AnnotationSpec;
-
 import fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Column;
 import fr.pierrickrouxel.jpaentitygenerator.metadata.Index;
@@ -26,6 +13,18 @@ import fr.pierrickrouxel.jpaentitygenerator.rule.FieldDefaultValueRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.FieldTypeRule;
 import fr.pierrickrouxel.jpaentitygenerator.rule.Interface;
 import fr.pierrickrouxel.jpaentitygenerator.rule.InterfaceRule;
+import org.junit.jupiter.api.Test;
+
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class EntityGeneratorTest {
 
@@ -77,8 +76,8 @@ public class EntityGeneratorTest {
     assertThat(entity).contains("@Table(\n" +
       "    name = \"\\\"ARTICLE_TAG\\\"\",\n" +
       "    uniqueConstraints = {\n" +
-      "        @UniqueConstraint(name = \"U_ART_PLV\", columnNames = {\"\\\"articleId\\\"\", \"\\\"plvId\\\"\"}),\n" +
-      "        @UniqueConstraint(name = \"U_ART_TAG\", columnNames = {\"\\\"articleId\\\"\", \"\\\"tagId\\\"\"})\n" +
+      "        @UniqueConstraint(name = \"U_ART_PLV\", columnNames = {\"\\\"ARTICLE_ID\\\"\", \"\\\"PLV_ID\\\"\"}),\n" +
+      "        @UniqueConstraint(name = \"U_ART_TAG\", columnNames = {\"\\\"ARTICLE_ID\\\"\", \"\\\"TAG_ID\\\"\"})\n" +
       "    }\n" +
       ")");
     assertThat(entity).contains("@Column(\n" +
@@ -188,13 +187,15 @@ public class EntityGeneratorTest {
         .foreignKeyTableName("ARTICLE").foreignKeyColumnName("BLOG_ID").build();
 
     assertThat(EntityGenerator
-        .getManyToOneField("BLOG", importedKey, columns, Collections.emptyList()).toString())
+        .getManyToOneField("BLOG", Collections.singletonList(importedKey), columns, Collections.emptyList()).toString())
         .isEqualTo("""
             @jakarta.persistence.ManyToOne
             @jakarta.persistence.JoinColumn(
                 name = "\\\"BLOG_ID\\\"",
                 referencedColumnName = "\\\"ID\\\"",
-                nullable = false
+                nullable = false,
+                insertable = false,
+                updatable = false
             )
             private Blog blog;
             """);
@@ -210,8 +211,16 @@ public class EntityGeneratorTest {
         Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("EMAIL")
           .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
         );
-
-    assertThat(EntityGenerator.getManyToOneFields(importedKeys, columns, Collections.emptyList())).isEmpty();
+    assertThat(EntityGenerator
+      .getManyToOneFields(importedKeys, columns, Collections.emptyList()).toString())
+      .isEqualTo("""
+        [@jakarta.persistence.ManyToOne
+        @jakarta.persistence.JoinColumns({
+            @jakarta.persistence.JoinColumn(name = "\\"USER_PHONE\\"", referencedColumnName = "\\"PHONE\\"", nullable = false, insertable = false, updatable = false),
+            @jakarta.persistence.JoinColumn(name = "\\"USER_EMAIL\\"", referencedColumnName = "\\"EMAIL\\"", nullable = false, insertable = false, updatable = false)
+        })
+        private User user;
+        ]""");
   }
 
   @Test
@@ -222,8 +231,12 @@ public class EntityGeneratorTest {
         Key.builder().primaryKeyTableName("USER").primaryKeyColumnName("EMAIL")
           .foreignKeyTableName("ARTICLE").foreignKeyColumnName("USER_EMAIL").build()
     );
-
-    assertThat(EntityGenerator.getOneToManyFields(exportedKeys, Collections.emptyList())).isEmpty();
+    assertThat(EntityGenerator.getOneToManyFields(exportedKeys, Collections.emptyList()).toString()).isEqualTo("""
+        [@jakarta.persistence.OneToMany(
+            mappedBy = "user"
+        )
+        private java.util.List<Article> articles;
+        ]""");
   }
 
   @Test

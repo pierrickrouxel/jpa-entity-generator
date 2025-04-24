@@ -1,9 +1,9 @@
 package fr.pierrickrouxel.jpaentitygenerator;
 
+import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
+
 import java.sql.DriverManager;
 import java.sql.SQLException;
-
-import fr.pierrickrouxel.jpaentitygenerator.config.JdbcSettings;
 
 public class TestDatabase {
   public final static JdbcSettings jdbcSettings = JdbcSettings.builder()
@@ -59,7 +59,31 @@ public class TestDatabase {
           ") REFERENCES something_tmp (" +
           "identifier, expiration_timestamp" +
           ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS sales (" +
+        " id_sales VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " warehouse char(2), " +
+        " reference bigint NULL, " +
+        " customer char(30)," +
+        " CONSTRAINT u_sales UNIQUE (warehouse,reference)" +
+        ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS detail (" +
+        "id_detail VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " warehouse char(2), " +
+        " reference bigint NULL, " +
+        " position int NOT NULL," +
+        " price int," +
+        " CONSTRAINT u_detail UNIQUE (warehouse,reference,position)," +
+        " CONSTRAINT fk_2 FOREIGN KEY (warehouse,reference) REFERENCES sales(warehouse,reference)" +
+        ")").execute();
+      conn.prepareStatement("CREATE TABLE IF NOT EXISTS detail_information (" +
+        " id_detail VARCHAR(50) PRIMARY KEY NOT NULL, " +
+        " warehouse char(2), " +
+        " reference bigint NULL, " +
+        " position int NOT NULL," +
+        " article char(30)," +
+        " CONSTRAINT fk_1 FOREIGN KEY (warehouse,reference,position) REFERENCES detail(warehouse,reference,position)" +
+        ")").execute();
     }
-
   }
+
 }
