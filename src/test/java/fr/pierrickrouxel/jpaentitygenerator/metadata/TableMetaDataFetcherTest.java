@@ -82,10 +82,10 @@ public class TableMetaDataFetcherTest {
   public void testGetTableExportedKeys() throws SQLException {
     var table = fetcher.getTable("ARTICLE");
     assertThat(table.getExportedKeys()).hasSize(1);
-    assertThat(table.getExportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("ARTICLE");
-    assertThat(table.getExportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
-    assertThat(table.getExportedKeys().getFirst().getForeignKeyTableName()).isEqualTo("ARTICLE_TAG");
-    assertThat(table.getExportedKeys().getFirst().getForeignKeyColumnName()).isEqualTo("ARTICLE_ID");
+    assertThat(table.getExportedKeys().get(0).getPrimaryKeyTableName()).isEqualTo("ARTICLE");
+    assertThat(table.getExportedKeys().get(0).getPrimaryKeyColumnName()).isEqualTo("ID");
+    assertThat(table.getExportedKeys().get(0).getForeignKeyTableName()).isEqualTo("ARTICLE_TAG");
+    assertThat(table.getExportedKeys().get(0).getForeignKeyColumnName()).isEqualTo("ARTICLE_ID");
   }
   @Test
   public void testGetMultiTablesExportedKeys() throws SQLException {
@@ -107,10 +107,10 @@ public class TableMetaDataFetcherTest {
   public void testGetTableImportedKeys() throws SQLException {
     var table = fetcher.getTable("ARTICLE");
     assertThat(table.getImportedKeys()).hasSize(1);
-    assertThat(table.getImportedKeys().getFirst().getPrimaryKeyTableName()).isEqualTo("BLOG");
-    assertThat(table.getImportedKeys().getFirst().getPrimaryKeyColumnName()).isEqualTo("ID");
-    assertThat(table.getImportedKeys().getFirst().getForeignKeyTableName()).isEqualTo("ARTICLE");
-    assertThat(table.getImportedKeys().getFirst().getForeignKeyColumnName()).isEqualTo("BLOG_ID");
+    assertThat(table.getImportedKeys().get(0).getPrimaryKeyTableName()).isEqualTo("BLOG");
+    assertThat(table.getImportedKeys().get(0).getPrimaryKeyColumnName()).isEqualTo("ID");
+    assertThat(table.getImportedKeys().get(0).getForeignKeyTableName()).isEqualTo("ARTICLE");
+    assertThat(table.getImportedKeys().get(0).getForeignKeyColumnName()).isEqualTo("BLOG_ID");
   }
 
   @Test

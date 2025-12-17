@@ -187,7 +187,7 @@ public class EntityGenerator {
     final var builder = AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.Table"))
       .addMember("name", "\"\\\"$L\\\"\"", tableName);
     constraints.entrySet().stream()
-      .filter(entry -> entry.getValue().size() > 1 && !entry.getValue().getFirst().isNonUnique())
+      .filter(entry -> entry.getValue().size() > 1 && !entry.getValue().get(0).isNonUnique())
       .forEach(entry -> {
         final AnnotationSpec.Builder annotation = AnnotationSpec.builder(ClassName.get("jakarta.persistence", "UniqueConstraint"))
           .addMember("name", "$S", entry.getKey());
@@ -274,7 +274,7 @@ public class EntityGenerator {
       return null;
     }
     if (importedKeys.size() == 1) {
-      final Key importedKey = importedKeys.getFirst();
+      final Key importedKey = importedKeys.get(0);
       var isNullable = checkImportedKeyNullable(importedKey, columns);
 
       return AnnotationSpec.builder(ClassName.bestGuess("jakarta.persistence.JoinColumn"))
@@ -312,7 +312,7 @@ public class EntityGenerator {
   public static List<FieldSpec> getOneToManyFields(List<Key> exportedKeys, List<ClassNameRule> classNameRules) {
     var keyMap = exportedKeys.stream().collect(Collectors.groupingBy(Key::getForeignKeyTableName));
     return keyMap.values().stream()
-        .map(keys -> getOneToManyField(keys.getFirst(), classNameRules))
+        .map(keys -> getOneToManyField(keys.get(0), classNameRules))
         .collect(Collectors.toList());
   }
 
