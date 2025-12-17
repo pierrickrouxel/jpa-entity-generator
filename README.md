@@ -9,7 +9,7 @@ The project provides a Gradle plugin.
 
 ## Compatibility
 
-- Java >= 21
+- Java >= 20
 - jakarta.persistence
 
 ## Getting Started
