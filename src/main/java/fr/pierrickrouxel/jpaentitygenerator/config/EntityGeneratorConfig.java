@@ -120,6 +120,9 @@ public class EntityGeneratorConfig implements Serializable {
   @Builder.Default
   private List<FieldAdditionalCommentRule> fieldAdditionalCommentRules = new ArrayList<>();
 
+  @Builder.Default
+  private List<String> includes = new ArrayList<>();
+
   /**
    * Load configuration replacing environment variables.
    *
@@ -131,11 +134,37 @@ public class EntityGeneratorConfig implements Serializable {
   public static EntityGeneratorConfig load(String path, Map<String, String> environment) throws IOException {
     var yaml = new Yaml();
 
-    try (var inputStream = Files.newInputStream(Paths.get(path))) {
+    final var pathObj = Paths.get(path);
+    try (var inputStream = Files.newInputStream(pathObj)) {
       var config = yaml.loadAs(inputStream, EntityGeneratorConfig.class);
       config.loadEnvVariables(environment);
+      config.loadIncludes(pathObj.getParent().toFile().getAbsolutePath());
       return config;
     }
+  }
+
+  /**
+   * Load includes yaml files.
+   */
+  private void loadIncludes(String path) {
+    includes.forEach(s -> {
+      try (var inputStream = Files.newInputStream(Paths.get(path+s))) {
+        var config = new Yaml().loadAs(inputStream, EntityGeneratorConfig.class);
+        this.fieldAdditionalCommentRules.addAll(config.getFieldAdditionalCommentRules());
+        this.fieldAnnotationRules.addAll(config.getFieldAnnotationRules());
+        this.fieldDefaultValueRules.addAll(config.getFieldDefaultValueRules());
+        this.fieldTypeRules.addAll(config.getFieldTypeRules());
+        this.interfaceRules.addAll(config.getInterfaceRules());
+        this.classAdditionalCommentRules.addAll(config.getClassAdditionalCommentRules());
+        this.classAnnotationRules.addAll(config.getClassAnnotationRules());
+        this.classNameRules.addAll(config.getClassNameRules());
+        this.tableExclusionRules.addAll(config.getTableExclusionRules());
+        this.tableScanRules.addAll(config.getTableScanRules());
+
+      } catch (IOException e) {
+        throw new RuntimeException(e);
+      }
+    });
   }
 
   /**

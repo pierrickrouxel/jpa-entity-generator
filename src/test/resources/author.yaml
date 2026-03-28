@@ -1,0 +1,12 @@
+classNameRules:
+  - tableName: "author"
+    className: "Author"
+fieldTypeRules:
+  - className: "Author"
+    fieldName: "name"
+    typeName: "String"
+fieldAnnotationRules:
+  - className: "Author"
+    fieldName: "tags"
+    annotations:
+      - className: "Deprecated"

@@ -1,13 +1,21 @@
 package fr.pierrickrouxel.jpaentitygenerator.config;
 
+import fr.pierrickrouxel.jpaentitygenerator.rule.Annotation;
+import fr.pierrickrouxel.jpaentitygenerator.rule.ClassNameRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldAnnotationRule;
+import fr.pierrickrouxel.jpaentitygenerator.rule.FieldTypeRule;
+import org.junit.jupiter.api.Test;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import static org.assertj.core.api.Assertions.assertThat;
-import org.junit.jupiter.api.Test;
+import java.util.List;
+import java.util.Objects;
 
 import static fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig.hasEnvVariables;
 import static fr.pierrickrouxel.jpaentitygenerator.config.EntityGeneratorConfig.replaceEnvVariables;
+import static org.assertj.core.api.Assertions.assertThat;
 
 public class CodeGeneratorConfigTest {
 
@@ -48,6 +56,26 @@ public class CodeGeneratorConfigTest {
         .isTrue();
     assertThat(replaceEnvVariables("as is $", environment).equals("as is $")).isTrue();
     assertThat(replaceEnvVariables("${" + k1 + "}${" + k2 + "}", environment).equals(v1 + v2)).isTrue();
+  }
+
+  @Test
+  public void testLoad() throws IOException {
+    final var path = new File(Objects.requireNonNull(getClass().getResource("/jpa-entity-generator.yaml")).getPath()).getAbsolutePath();
+    final var generator = EntityGeneratorConfig.load(path, new HashMap<>());
+    assertThat(generator).isNotNull();
+    final var classNameRule = new ClassNameRule();
+    classNameRule.setClassName("Author");
+    classNameRule.setTableName("author");
+    assertThat(generator.getClassNameRules()).contains(classNameRule);
+
+    assertThat(generator.getFieldTypeRules()).contains(
+      new FieldTypeRule("Author", new ArrayList<>(), "name", new ArrayList<>(), "String")
+    );
+    assertThat(generator.getFieldAnnotationRules()).contains(
+      new FieldAnnotationRule("Author", new ArrayList<>(), "tags", new ArrayList<>(),
+        List.of(new Annotation("Deprecated", new ArrayList<>())))
+    );
+
   }
 
 }
